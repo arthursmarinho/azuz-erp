@@ -8,7 +8,6 @@ export default function MainLayout({
 }) {
   return (
     <ProtectedRoute>
-      <div>s</div>
       <AppShell>{children}</AppShell>
     </ProtectedRoute>
   );
