@@ -45,6 +45,9 @@ let LeadsController = class LeadsController {
     addToKanban(user, dto) {
         return this.leadsService.addToKanban(user, dto);
     }
+    removeFromKanban(user, id) {
+        return this.leadsService.removeFromKanban(user, id);
+    }
     getComments(user, id) {
         return this.leadsService.getComments(user, id);
     }
@@ -96,6 +99,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, lead_kanban_dto_1.AddLeadToKanbanDto]),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "addToKanban", null);
+__decorate([
+    (0, common_1.Delete)(':id/kanban'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], LeadsController.prototype, "removeFromKanban", null);
 __decorate([
     (0, common_1.Get)(':id/comments'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),

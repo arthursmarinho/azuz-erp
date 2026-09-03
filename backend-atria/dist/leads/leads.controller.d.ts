@@ -149,6 +149,9 @@ export declare class LeadsController {
         createdAt: string;
         updatedAt: string;
     }>;
+    removeFromKanban(user: AuthenticatedUser, id: string): Promise<{
+        success: boolean;
+    }>;
     getComments(user: AuthenticatedUser, id: string): Promise<{
         id: string;
         content: string;

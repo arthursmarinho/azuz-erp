@@ -9,10 +9,12 @@ import {
   Lock,
   MessageCircle,
   MessagesSquare,
+  Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/contexts/confirm-context";
 import { LeadLocationText } from "@/components/leads/lead-location-text";
 import {
   getLeadStatusColor,
@@ -44,6 +46,7 @@ interface LeadKanbanCardProps {
   onStatusChange: (leadId: string, columnKey: string) => void;
   onCollapseChange: (leadId: string, isMinimized: boolean) => void;
   onOpenDetails: (lead: Lead) => void;
+  onRemove?: (leadId: string) => void;
 }
 
 export function LeadKanbanCard({
@@ -56,7 +59,9 @@ export function LeadKanbanCard({
   onStatusChange,
   onCollapseChange,
   onOpenDetails,
+  onRemove,
 }: LeadKanbanCardProps) {
+  const confirm = useConfirm();
   const [copied, setCopied] = useState(false);
   const [collapsed, setCollapsed] = useState(() => isLeadCollapsed(lead));
   const [hovered, setHovered] = useState(false);
@@ -102,6 +107,18 @@ export function LeadKanbanCard({
   function isColumnAllowed(columnStatus: string) {
     if (portalClientView) return true;
     return canMoveLeadToColumn(crmMoveZone, columnStatus);
+  }
+
+  async function handleRemove() {
+    if (!onRemove) return;
+    const confirmed = await confirm({
+      title: "Remover do funil",
+      description: `Remover "${lead.name}" do kanban? O lead continuará disponível na prospecção.`,
+      confirmLabel: "Remover",
+      destructive: true,
+    });
+    if (!confirmed) return;
+    onRemove(lead.id);
   }
 
   return (
@@ -273,6 +290,19 @@ export function LeadKanbanCard({
                 WhatsApp
               </Button>
             ) : null}
+
+            {onRemove && !portalClientView && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                onClick={() => void handleRemove()}
+              >
+                <Trash2 className="size-3.5" />
+                Remover do funil
+              </Button>
+            )}
           </div>
         </>
       )}

@@ -360,6 +360,17 @@ let LeadsService = LeadsService_1 = class LeadsService {
         });
         return this.toLeadResponse(updated);
     }
+    async removeFromKanban(user, id) {
+        const lead = await this.findLeadForUser(user, id);
+        if (!lead.kanbanTracked) {
+            return { success: true };
+        }
+        await this.prisma.lead.update({
+            where: { id: lead.id },
+            data: { kanbanTracked: false },
+        });
+        return { success: true };
+    }
     async updateLeadStage(user, id, dto) {
         return this.updateStatus(user, id, dto);
     }

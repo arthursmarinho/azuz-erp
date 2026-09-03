@@ -94,6 +94,14 @@ export async function addToKanban(
   });
 }
 
+export async function removeFromKanban(
+  id: string,
+): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>(`/leads/${id}/kanban`, {
+    method: "DELETE",
+  });
+}
+
 export async function updateLeadStatus(
   id: string,
   data: UpdateLeadStatusInput,

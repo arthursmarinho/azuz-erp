@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -58,6 +59,14 @@ export class LeadsController {
     @Body() dto: AddLeadToKanbanDto,
   ) {
     return this.leadsService.addToKanban(user, dto);
+  }
+
+  @Delete(':id/kanban')
+  removeFromKanban(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    return this.leadsService.removeFromKanban(user, id);
   }
 
   @Get(':id/comments')

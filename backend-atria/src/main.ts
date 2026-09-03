@@ -16,6 +16,7 @@ const DEFAULT_CORS_ORIGINS = [
   'https://azuz.cwbranding.com.br',
   'https://atria-erp.vercel.com',
   'http://localhost:3000',
+  'http://localhost:3002',
   'http://127.0.0.1:3000',
 ];
 

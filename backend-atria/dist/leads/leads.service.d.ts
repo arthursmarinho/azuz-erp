@@ -253,6 +253,9 @@ export declare class LeadsService {
         createdAt: string;
         updatedAt: string;
     }>;
+    removeFromKanban(user: AuthenticatedUser, id: string): Promise<{
+        success: boolean;
+    }>;
     updateLeadStage(user: AuthenticatedUser, id: string, dto: UpdateLeadStatusDto): Promise<{
         id: string;
         companyId: string;

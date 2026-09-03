@@ -409,6 +409,33 @@ export function LeadsKanbanBoard({
     }
   }
 
+  function removeLeadFromColumns(leadId: string) {
+    setColumns((current) =>
+      current.map((column) => ({
+        ...column,
+        leads: column.leads.filter((lead) => lead.id !== leadId),
+      })),
+    );
+    setTotal((current) => Math.max(0, current - 1));
+  }
+
+  async function handleRemoveLead(leadId: string) {
+    removeLeadFromColumns(leadId);
+
+    if (selectedLead?.id === leadId) {
+      setDetailOpen(false);
+      setSelectedLead(null);
+    }
+
+    try {
+      await leadsService.removeFromKanban(leadId);
+      toast.success("Lead removido do funil");
+    } catch {
+      await loadBoard();
+      toast.error("Não foi possível remover o lead do funil.");
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -701,6 +728,11 @@ export function LeadsKanbanBoard({
                                       setSelectedLead(selected);
                                       setDetailOpen(true);
                                     }}
+                                    onRemove={
+                                      portalClientView
+                                        ? undefined
+                                        : (id) => void handleRemoveLead(id)
+                                    }
                                   />
                                 </div>
                               )}
