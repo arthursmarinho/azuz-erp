@@ -79,12 +79,6 @@ function PortalSidebarPanel({
 
       <div className="shrink-0 border-t border-white/8 px-4 py-4">
         <div className="mb-4">
-          <p
-            className="text-[10px] font-semibold uppercase tracking-widest"
-            style={{ color: branding.accentColor }}
-          >
-            {accountStatus.status === "active" ? "Conta ativa" : "Onboarding"}
-          </p>
           <ClientName as="p" className="mt-1 text-sm font-semibold text-white">
             {client?.companyName}
           </ClientName>
@@ -195,7 +189,7 @@ export function PortalShell({
               color: `${branding.primaryColor}80`,
             }}
           >
-            {branding.agencyName} · Portal do Cliente · Acesso autenticado
+            {branding.agencyName} · Portal do Cliente
           </footer>
         </div>
       </div>
