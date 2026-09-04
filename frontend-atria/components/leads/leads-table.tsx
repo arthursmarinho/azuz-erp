@@ -1,0 +1,500 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Download,
+  Kanban,
+  Loader2,
+  MessageCircle,
+  Sparkles,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { exportLeadsToExcel } from "@/lib/leads-export";
+import {
+  getLeadStatusLabel,
+  LEAD_STATUS_LABELS,
+} from "@/lib/leads-kanban-utils";
+import { toast } from "@/lib/toast";
+import { LeadLocationText } from "@/components/leads/lead-location-text";
+import type { Lead, LeadStatus } from "@/services/types";
+
+const STATUS_VARIANTS: Record<
+  LeadStatus,
+  "default" | "secondary" | "success" | "destructive" | "warning" | "outline"
+> = {
+  PRE_VENDA: "warning",
+  APRESENTACAO: "secondary",
+  REUNIAO_AGENDADA: "default",
+  VENDA_FINALIZADA: "success",
+  AGUARDANDO_ENTREGA: "warning",
+  POS_VENDA: "success",
+  NAO_TEM_INTERESSE: "destructive",
+  AGUARDANDO_RESPOSTA: "outline",
+};
+
+function toWhatsAppUrl(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  const withCountry =
+    digits.length >= 10 && !digits.startsWith("55") ? `55${digits}` : digits;
+  return `https://wa.me/${withCountry}`;
+}
+
+async function copyPhone(phone: string) {
+  await navigator.clipboard.writeText(phone);
+  toast.success("Telefone copiado");
+}
+
+interface LeadsTableProps {
+  leads: Lead[];
+  loading?: boolean;
+  qualifyingId?: string | null;
+  addingKanbanId?: string | null;
+  organizationLabel?: string;
+  onQualify: (lead: Lead) => void;
+  onAddToKanban: (lead: Lead) => void;
+}
+
+const LEADS_PAGE_SIZE = 30;
+
+export function LeadsTable({
+  leads,
+  loading,
+  qualifyingId,
+  addingKanbanId,
+  organizationLabel = "a empresa atual",
+  onQualify,
+  onAddToKanban,
+}: LeadsTableProps) {
+  const [exporting, setExporting] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(leads.length / LEADS_PAGE_SIZE));
+
+  const paginatedLeads = useMemo(() => {
+    const start = (page - 1) * LEADS_PAGE_SIZE;
+    return leads.slice(start, start + LEADS_PAGE_SIZE);
+  }, [leads, page]);
+
+  const rangeStart = leads.length === 0 ? 0 : (page - 1) * LEADS_PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * LEADS_PAGE_SIZE, leads.length);
+
+  useEffect(() => {
+    setPage(1);
+  }, [leads]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
+
+  async function handleExport() {
+    if (leads.length === 0) return;
+    setExporting(true);
+    try {
+      await exportLeadsToExcel(leads);
+      toast.success("Excel exportado com sucesso");
+    } catch {
+      toast.error("Não foi possível exportar o Excel.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleCopy(lead: Lead) {
+    if (!lead.phone) return;
+    try {
+      await copyPhone(lead.phone);
+      setCopiedId(lead.id);
+      window.setTimeout(() => {
+        setCopiedId((current) => (current === lead.id ? null : current));
+      }, 1800);
+    } catch {
+      toast.error("Não foi possível copiar o telefone.");
+    }
+  }
+
+  if (!loading && leads.length === 0) {
+    return (
+      <Card className="rounded-2xl border border-dashed border-[var(--atria-primary)]/20 bg-white px-6 py-12 text-center">
+        <p className="font-semibold text-[var(--atria-primary)]">
+          Nenhum lead encontrado
+        </p>
+        <p className="mt-1 text-sm text-[var(--atria-primary)]/50">
+          Busque por cidade, categoria e bairro para prospectar no Maps.
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-[var(--atria-primary)]">
+            {leads.length} lead{leads.length === 1 ? "" : "s"}
+          </p>
+          <p className="text-xs text-[var(--atria-primary)]/50">
+            Resultados de prospecção para {organizationLabel}
+            {leads.length > LEADS_PAGE_SIZE
+              ? ` · exibindo ${rangeStart}–${rangeEnd} de ${leads.length}`
+              : null}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={exporting || leads.length === 0}
+          onClick={() => void handleExport()}
+          className="w-full gap-2 border-[#D4BA97] bg-[#D4BA97]/20 text-[#004A4A] hover:bg-[#D4BA97]/35 sm:w-auto"
+        >
+          {exporting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Download className="size-4" />
+          )}
+          {exporting ? "Exportando..." : "Exportar Excel"}
+        </Button>
+      </div>
+
+      <div className="grid gap-3 md:hidden">
+        {paginatedLeads.map((lead) => {
+          const isQualifying = qualifyingId === lead.id;
+          const isAdding = addingKanbanId === lead.id;
+          const isCopied = copiedId === lead.id;
+          const onKanban = Boolean(lead.kanbanTracked);
+
+          return (
+            <Card
+              key={lead.id}
+              className="rounded-2xl border border-[var(--atria-primary)]/10 bg-white p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-[var(--atria-primary)]">
+                    {lead.name}
+                  </p>
+                  {lead.category && (
+                    <p className="mt-0.5 text-xs text-[var(--atria-primary)]/50">
+                      {lead.category}
+                    </p>
+                  )}
+                </div>
+                <Badge variant={STATUS_VARIANTS[lead.status]}>
+                  {lead.statusLabel ?? getLeadStatusLabel(lead.status)}
+                </Badge>
+              </div>
+
+              <div className="mt-3 min-w-0 space-y-1.5 text-sm text-[var(--atria-primary)]/70">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate">
+                    {lead.phone ?? "Sem telefone"}
+                  </span>
+                  {lead.phone && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="shrink-0"
+                      onClick={() => void handleCopy(lead)}
+                      title="Copiar telefone"
+                    >
+                      {isCopied ? (
+                        <Check className="size-4 text-green-600" />
+                      ) : (
+                        <Copy className="size-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+                {(lead.neighborhood || lead.city || lead.address) && (
+                  <LeadLocationText
+                    lead={lead}
+                    primaryClassName="text-xs text-[var(--atria-primary)]/50"
+                    showAddress={Boolean(lead.address)}
+                  />
+                )}
+                {lead.aiScore != null && (
+                  <p className="text-xs text-[var(--atria-primary)]/50">
+                    Score IA: {lead.aiScore}
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-2">
+                <Button
+                  type="button"
+                  variant={onKanban ? "secondary" : "outline"}
+                  size="sm"
+                  className="w-full"
+                  disabled={onKanban || isAdding}
+                  onClick={() => onAddToKanban(lead)}
+                >
+                  {isAdding ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Kanban className="size-4" />
+                  )}
+                  {onKanban ? "Adicionado ao kanban" : "Adicionar ao kanban"}
+                </Button>
+                {lead.phone ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    render={
+                      <a
+                        href={toWhatsAppUrl(lead.phone)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
+                    }
+                  >
+                    <MessageCircle className="size-4" />
+                    WhatsApp
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled
+                    className="w-full"
+                  >
+                    <MessageCircle className="size-4" />
+                    WhatsApp
+                  </Button>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card className="hidden overflow-hidden rounded-2xl border border-[var(--atria-primary)]/10 bg-white md:block">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-[var(--atria-primary)]/5 hover:bg-[var(--atria-primary)]/5">
+                <TableHead className="min-w-[180px] text-[var(--atria-primary)]/60">
+                  Empresa
+                </TableHead>
+                <TableHead className="min-w-[150px] text-[var(--atria-primary)]/60">
+                  Contato
+                </TableHead>
+                <TableHead className="w-[180px] max-w-[180px] text-[var(--atria-primary)]/60">
+                  Local
+                </TableHead>
+                <TableHead className="hidden text-[var(--atria-primary)]/60 lg:table-cell">
+                  Categoria
+                </TableHead>
+                <TableHead className="text-[var(--atria-primary)]/60">
+                  Status
+                </TableHead>
+                <TableHead className="hidden text-[var(--atria-primary)]/60 xl:table-cell">
+                  Score IA
+                </TableHead>
+                <TableHead className="min-w-[280px] text-right text-[var(--atria-primary)]/60">
+                  Ações
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedLeads.map((lead) => {
+                const isQualifying = qualifyingId === lead.id;
+                const isAdding = addingKanbanId === lead.id;
+                const isCopied = copiedId === lead.id;
+                const onKanban = Boolean(lead.kanbanTracked);
+
+                return (
+                  <TableRow key={lead.id}>
+                    <TableCell className="max-w-[220px]">
+                      <div className="min-w-0">
+                        <div className="truncate font-medium text-[var(--atria-primary)]">
+                          {lead.name}
+                        </div>
+                        {lead.website && (
+                          <a
+                            href={
+                              lead.website.startsWith("http")
+                                ? lead.website
+                                : `https://${lead.website}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-0.5 block truncate text-xs text-[var(--atria-primary)]/50 underline-offset-2 hover:underline"
+                          >
+                            {lead.website}
+                          </a>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-[160px] text-[var(--atria-primary)]/70">
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <span className="min-w-0 flex-1 truncate">
+                            {lead.phone ?? "—"}
+                          </span>
+                          {lead.phone && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              className="shrink-0"
+                              onClick={() => void handleCopy(lead)}
+                              title="Copiar telefone"
+                            >
+                              {isCopied ? (
+                                <Check className="size-3.5 text-green-600" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                        {lead.email && (
+                          <span className="min-w-0 truncate text-xs text-[var(--atria-primary)]/45">
+                            {lead.email}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="w-[180px] max-w-[180px] text-[var(--atria-primary)]/70">
+                      <LeadLocationText lead={lead} className="w-full" />
+                    </TableCell>
+                    <TableCell className="hidden max-w-[140px] text-[var(--atria-primary)]/70 lg:table-cell">
+                      <span className="block min-w-0 truncate">
+                        {lead.category ?? "—"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_VARIANTS[lead.status]}>
+                        {lead.statusLabel ??
+                          LEAD_STATUS_LABELS[lead.status] ??
+                          lead.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden text-[var(--atria-primary)]/70 xl:table-cell">
+                      {lead.aiScore != null ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">{lead.aiScore}</span>
+                          {lead.aiNotes && (
+                            <span
+                              className="line-clamp-2 max-w-[180px] text-xs text-[var(--atria-primary)]/45"
+                              title={lead.aiNotes}
+                            >
+                              {lead.aiNotes}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant={onKanban ? "secondary" : "outline"}
+                          size="sm"
+                          disabled={onKanban || isAdding}
+                          onClick={() => onAddToKanban(lead)}
+                        >
+                          {isAdding ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Kanban className="size-4" />
+                          )}
+                          <span className="hidden xl:inline">
+                            {onKanban
+                              ? "Adicionado ao kanban"
+                              : "Adicionar ao kanban"}
+                          </span>
+                        </Button>
+                        {lead.phone ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            render={
+                              <a
+                                href={toWhatsAppUrl(lead.phone)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              />
+                            }
+                          >
+                            <MessageCircle className="size-4" />
+                            <span className="hidden xl:inline">WhatsApp</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled
+                          >
+                            <MessageCircle className="size-4" />
+                            <span className="hidden xl:inline">WhatsApp</span>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </Card>
+
+      {totalPages > 1 && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[var(--atria-primary)]/60">
+            Página {page} de {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              className="gap-1"
+            >
+              <ChevronLeft className="size-4" />
+              Anterior
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+              className="gap-1"
+            >
+              Próxima
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
