@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Expand,
   Loader2,
-  MessageSquareWarning,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import type { PortalActionHandlers } from "@/components/portal/portal-actions";
@@ -16,7 +15,6 @@ import {
   MediaLightbox,
   type LightboxMediaItem,
 } from "@/components/deliverables/media-lightbox";
-import { MediaRevisionDrawer } from "@/components/deliverables/media-revision-drawer";
 import { Button } from "@/components/ui/button";
 import { MediaPreview } from "@/components/ui/media-preview";
 import { useCarouselKeyboard } from "@/hooks/use-carousel-keyboard";
@@ -62,9 +60,6 @@ export function PortalDeliveryReview({
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [revisionItem, setRevisionItem] = useState<DeliverableItem | null>(null);
-  const [revisionOpen, setRevisionOpen] = useState(false);
-  const [revisionLoading, setRevisionLoading] = useState(false);
   const [approvingPost, setApprovingPost] = useState(false);
   const [approvingItem, setApprovingItem] = useState(false);
   const [deliveryApproved, setDeliveryApproved] = useState(
@@ -154,54 +149,12 @@ export function PortalDeliveryReview({
   );
 
   const { goPrev, goNext } = useCarouselKeyboard({
-    enabled: !lightboxOpen && !revisionOpen && items.length > 0,
+    enabled: !lightboxOpen && items.length > 0,
     itemCount: items.length,
     index: activeIndex,
     onIndexChange: setActiveIndex,
     onEscape: onBack,
   });
-
-  function openRevision(item: DeliverableItem) {
-    if (item.id.startsWith("attachment-")) {
-      toast.error("Aguarde a sincronização desta mídia para solicitar ajuste.");
-      return;
-    }
-    setRevisionItem(item);
-    setRevisionOpen(true);
-  }
-
-  async function handleRevisionSubmit(itemId: string, notes: string) {
-    setRevisionLoading(true);
-    try {
-      const updated = await actions.reviseDeliverableItem(itemId, {
-        status: "requires_adjustment",
-        adjustmentNotes: notes,
-      });
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                ...updated,
-                feedbackNotes: updated.adjustmentNotes ?? updated.feedbackNotes,
-              }
-            : item,
-        ),
-      );
-      setDeliveryApproved(false);
-      toast.warning(
-        "Ajuste solicitado — a tarefa voltará para Necessita de ajustes.",
-      );
-      setRevisionOpen(false);
-      setRevisionItem(null);
-      setLightboxOpen(false);
-      onRefresh();
-    } catch {
-      toast.error("Não foi possível enviar o ajuste.");
-    } finally {
-      setRevisionLoading(false);
-    }
-  }
 
   async function handleApproveItem(item: LightboxMediaItem | DeliverableItem) {
     const itemId =
@@ -413,16 +366,6 @@ export function PortalDeliveryReview({
                   <Button
                     type="button"
                     size="sm"
-                    variant="outline"
-                    className="gap-1.5 border-amber-300 text-amber-800 hover:bg-amber-50"
-                    onClick={() => openRevision(currentItem)}
-                  >
-                    <MessageSquareWarning className="size-3.5" />
-                    Solicitar Ajuste
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
                     className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700"
                     disabled={
                       approvingItem || currentItem.status === "approved"
@@ -494,34 +437,12 @@ export function PortalDeliveryReview({
         open={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
         onIndexChange={setActiveIndex}
-        onRequestAdjustment={(item) => {
-          const match = items.find((entry) => entry.id === item.id);
-          if (!match) return;
-          setLightboxOpen(false);
-          openRevision(match);
-        }}
         onApprove={handleApproveItem}
         onDownload={(item) => {
           const url = actions.resolveAssetUrl(item.url);
           window.open(url, "_blank", "noopener,noreferrer");
         }}
         approving={approvingItem}
-      />
-
-      <MediaRevisionDrawer
-        item={
-          revisionItem
-            ? {
-                ...revisionItem,
-                feedbackNotes:
-                  revisionItem.adjustmentNotes ?? revisionItem.feedbackNotes,
-              }
-            : null
-        }
-        open={revisionOpen}
-        onOpenChange={setRevisionOpen}
-        onSubmit={handleRevisionSubmit}
-        loading={revisionLoading}
       />
     </div>
   );
