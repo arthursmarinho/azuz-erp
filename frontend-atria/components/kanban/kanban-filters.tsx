@@ -1,11 +1,16 @@
 "use client";
 
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import {
+  RECORDING_FILTER_OPTIONS,
+  type RecordingFilter,
+} from "@/lib/production-phase";
 import type { Client, TeamMember } from "@/services/types";
 
 export interface KanbanFiltersState {
   assigneeId: string;
   clientId: string;
+  recordingFilter: RecordingFilter;
 }
 
 interface KanbanFiltersProps {
@@ -22,7 +27,7 @@ export function KanbanFilters({
   clients,
 }: KanbanFiltersProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-2xl border border-[var(--atria-primary)]/10 bg-white p-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 rounded-2xl border border-[var(--atria-primary)]/10 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
       <div>
         <p className="mb-1.5 text-xs font-medium text-[var(--atria-primary)]/50">
           Responsável
@@ -55,6 +60,30 @@ export function KanbanFilters({
             value: client.id,
             label: client.companyName,
           }))}
+          placeholder="Todos"
+        />
+      </div>
+
+      <div>
+        <p className="mb-1.5 text-xs font-medium text-[var(--atria-primary)]/50">
+          Gravação
+        </p>
+        <SearchableSelect
+          value={filters.recordingFilter}
+          onValueChange={(value) =>
+            onChange({
+              ...filters,
+              recordingFilter: value as RecordingFilter,
+            })
+          }
+          allowEmpty
+          emptyOptionLabel="Todos"
+          options={RECORDING_FILTER_OPTIONS.filter((option) => option.value !== "").map(
+            (option) => ({
+              value: option.value,
+              label: option.label,
+            }),
+          )}
           placeholder="Todos"
         />
       </div>

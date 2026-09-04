@@ -23,7 +23,12 @@ import {
   getEventPublicationAt,
 } from "@/lib/calendar-utils";
 import { PRODUCTION_PHASE_DEFINITIONS } from "@/lib/production-phase";
+import {
+  getCalendarContentTypeLabel,
+  getEventContentType,
+} from "@/lib/task-content-type";
 import { toast } from "@/lib/toast";
+import { TaskContentTypeIcon } from "@/components/icons/task-content-type-icon";
 import { useUpdateTaskMutation } from "@/hooks/use-task-mutations";
 import { calendarService } from "@/services";
 import type { CalendarEvent, ProductionPhase } from "@/services/types";
@@ -93,6 +98,7 @@ export function EventDetailDialog({
   const publicationAt = getEventPublicationAt(event);
   const deliveryAt = getEventDeliveryAt(event);
   const showProductionPhaseOptions = canChangeEventProductionPhase(event);
+  const contentType = getEventContentType(event);
 
   return (
     <>
@@ -105,11 +111,16 @@ export function EventDetailDialog({
                 style={{ backgroundColor: displayColor, color: displayColor }}
               />
               <div className="flex-1">
-                <DialogTitle className="text-[var(--atria-primary)]">
-                  {event.title}
+                <DialogTitle className="flex items-center gap-2 text-[var(--atria-primary)]">
+                  {contentType ? (
+                    <TaskContentTypeIcon type={contentType} size={18} />
+                  ) : null}
+                  <span>{event.title}</span>
                 </DialogTitle>
                 <p className="text-xs text-muted-foreground">
-                  {CATEGORY_LABELS[event.category]}
+                  {contentType
+                    ? getCalendarContentTypeLabel(contentType)
+                    : CATEGORY_LABELS[event.category]}
                 </p>
               </div>
             </div>

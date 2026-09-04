@@ -35,6 +35,7 @@ import {
   getWeekDays,
   mergeCalendarEventsWithTasks,
 } from "@/lib/calendar-utils";
+import { matchesEventRecordingFilter } from "@/lib/production-phase";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateTasksCache } from "@/lib/task-cache";
@@ -48,6 +49,7 @@ const VIEW_OPTIONS: { id: CalendarView; label: string }[] = [
 const EMPTY_FILTERS: KanbanFiltersState = {
   assigneeId: "",
   clientId: "",
+  recordingFilter: "",
 };
 
 function getNavigationLabel(view: CalendarView, anchor: Date) {
@@ -193,6 +195,10 @@ export function TeamCalendar() {
       if (filters.clientId) {
         const eventClientId = evt.clientId ?? linkedTask?.clientId ?? null;
         if (eventClientId !== filters.clientId) return false;
+      }
+
+      if (!matchesEventRecordingFilter(evt, filters.recordingFilter)) {
+        return false;
       }
 
       return true;
