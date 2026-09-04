@@ -8,11 +8,11 @@ export declare class ProposalsService {
         clientId: string;
         client: {
             id: string;
+            email: string | null;
+            avatarUrl: string | null;
             companyName: string;
             contactName: string | null;
-            email: string | null;
             phone: string | null;
-            avatarUrl: string | null;
         };
         title: string;
         status: string;
@@ -55,11 +55,11 @@ export declare class ProposalsService {
         clientId: string;
         client: {
             id: string;
+            email: string | null;
+            avatarUrl: string | null;
             companyName: string;
             contactName: string | null;
-            email: string | null;
             phone: string | null;
-            avatarUrl: string | null;
         };
         title: string;
         status: string;
@@ -103,11 +103,11 @@ export declare class ProposalsService {
         clientId: string;
         client: {
             id: string;
+            email: string | null;
+            avatarUrl: string | null;
             companyName: string;
             contactName: string | null;
-            email: string | null;
             phone: string | null;
-            avatarUrl: string | null;
         };
         title: string;
         status: string;
@@ -150,11 +150,11 @@ export declare class ProposalsService {
         clientId: string;
         client: {
             id: string;
+            email: string | null;
+            avatarUrl: string | null;
             companyName: string;
             contactName: string | null;
-            email: string | null;
             phone: string | null;
-            avatarUrl: string | null;
         };
         title: string;
         status: string;
@@ -197,11 +197,11 @@ export declare class ProposalsService {
         clientId: string;
         client: {
             id: string;
+            email: string | null;
+            avatarUrl: string | null;
             companyName: string;
             contactName: string | null;
-            email: string | null;
             phone: string | null;
-            avatarUrl: string | null;
         };
         title: string;
         status: string;
@@ -245,11 +245,11 @@ export declare class ProposalsService {
         clientId: string;
         client: {
             id: string;
+            email: string | null;
+            avatarUrl: string | null;
             companyName: string;
             contactName: string | null;
-            email: string | null;
             phone: string | null;
-            avatarUrl: string | null;
         };
         title: string;
         status: string;

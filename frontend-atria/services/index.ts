@@ -33,6 +33,7 @@ export * as creationService from "./creation.service";
 export * as deliverablesService from "./deliverables.service";
 export * as internalApprovalsService from "./internal-approvals.service";
 export * as suggestionsService from "./suggestions.service";
+export * as appUpdatesService from "./app-updates.service";
 export * as insightsService from "./insights.service";
 export * as metaAnalyticsService from "./meta-analytics.service";
 export * as performanceService from "./insights.service";

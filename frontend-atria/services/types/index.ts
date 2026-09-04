@@ -2486,3 +2486,12 @@ export type {
   UpdateSuggestionStatusInput,
 } from "./suggestions";
 
+export type {
+  AppUpdate,
+  AppUpdateAuthor,
+  AppUpdateVisibleRole,
+  AppUpdatesAccess,
+  CreateAppUpdateInput,
+  UpdateAppUpdateInput,
+} from "./app-updates";
+

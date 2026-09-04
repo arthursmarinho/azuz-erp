@@ -12,6 +12,7 @@ const config_1 = require("@nestjs/config");
 const schedule_1 = require("@nestjs/schedule");
 const agenda_module_1 = require("./agenda/agenda.module");
 const ai_module_1 = require("./ai/ai.module");
+const app_updates_module_1 = require("./app-updates/app-updates.module");
 const art_type_pricing_module_1 = require("./art-type-pricing/art-type-pricing.module");
 const assets_module_1 = require("./assets/assets.module");
 const auth_module_1 = require("./auth/auth.module");
@@ -68,6 +69,7 @@ exports.AppModule = AppModule = __decorate([
             health_module_1.HealthModule,
             agenda_module_1.AgendaModule,
             ai_module_1.AiModule,
+            app_updates_module_1.AppUpdatesModule,
             art_type_pricing_module_1.ArtTypePricingModule,
             auth_module_1.AuthModule,
             assets_module_1.AssetsModule,

@@ -54,3 +54,9 @@ export const suggestionKeys = {
   all: (companyId: string) => ["suggestions", companyId, "all"] as const,
   root: ["suggestions"] as const,
 };
+
+export const appUpdateKeys = {
+  access: (companyId: string) => ["app-updates", companyId, "access"] as const,
+  list: (companyId: string) => ["app-updates", companyId, "list"] as const,
+  root: ["app-updates"] as const,
+};

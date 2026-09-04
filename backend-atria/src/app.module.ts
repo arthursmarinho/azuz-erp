@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AgendaModule } from './agenda/agenda.module';
 import { AiModule } from './ai/ai.module';
+import { AppUpdatesModule } from './app-updates/app-updates.module';
 import { ArtTypePricingModule } from './art-type-pricing/art-type-pricing.module';
 import { AssetsModule } from './assets/assets.module';
 import { AuthModule } from './auth/auth.module';
@@ -56,6 +57,7 @@ import { LeadMinerModule } from './leadminer/leadminer.module';
     HealthModule,
     AgendaModule,
     AiModule,
+    AppUpdatesModule,
     ArtTypePricingModule,
     AuthModule,
     AssetsModule,
