@@ -14,7 +14,34 @@ export function useAppUpdatesAccess() {
     queryKey: appUpdateKeys.access(companyId ?? ""),
     queryFn: () => appUpdatesService.getAccess(),
     enabled: Boolean(companyId),
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+  });
+}
+
+export function useMarkAppUpdatesAsRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => appUpdatesService.markAppUpdatesAsRead(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: appUpdateKeys.root,
+      });
+    },
+  });
+}
+
+export function useMarkAppUpdateAsRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => appUpdatesService.markAppUpdateAsRead(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: appUpdateKeys.root,
+      });
+    },
   });
 }
 

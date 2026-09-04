@@ -26,12 +26,33 @@ export class AppUpdatesController {
 
   @Get('access')
   getAccess(@CurrentUser() user: AuthenticatedUser) {
-    return this.appUpdatesService.getAccess(user.role, user.companyId);
+    return this.appUpdatesService.getAccess(
+      user.userId,
+      user.role,
+      user.companyId,
+    );
+  }
+
+  @Post('mark-read')
+  markAllAsRead(@CurrentUser() user: AuthenticatedUser) {
+    return this.appUpdatesService.markAsRead(user.userId);
+  }
+
+  @Post(':id/mark-read')
+  markOneAsRead(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    return this.appUpdatesService.markOneAsRead(user.userId, id);
   }
 
   @Get()
   findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.appUpdatesService.findAll(user.role, user.companyId);
+    return this.appUpdatesService.findAll(
+      user.userId,
+      user.role,
+      user.companyId,
+    );
   }
 
   @Post()

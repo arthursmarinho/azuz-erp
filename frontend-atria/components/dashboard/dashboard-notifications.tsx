@@ -6,6 +6,7 @@ import { Bell, CheckCheck } from "lucide-react";
 import { NotificationItem } from "@/components/notifications/notification-item";
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/contexts/notifications-context";
+import { useMarkNotificationAsRead } from "@/hooks/use-mark-notification-as-read";
 import {
   getNotificationHref,
   groupNotificationsByCategory,
@@ -19,6 +20,7 @@ export function DashboardNotifications() {
   const router = useRouter();
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } =
     useNotifications();
+  const markNotificationAsRead = useMarkNotificationAsRead();
   const [filter, setFilter] = useState<ReadFilter>("all");
 
   const visible = useMemo(
@@ -36,7 +38,7 @@ export function DashboardNotifications() {
 
   async function handleOpen(notification: AppNotification) {
     if (!notification.isRead) {
-      await markAsRead(notification.id);
+      await markNotificationAsRead(notification);
     }
     router.push(getNotificationHref(notification));
   }
@@ -127,6 +129,7 @@ export function DashboardNotifications() {
                     <NotificationItem
                       notification={notification}
                       onOpen={(item) => void handleOpen(item)}
+                      onMarkAsRead={(item) => void markNotificationAsRead(item)}
                     />
                   </li>
                 ))}

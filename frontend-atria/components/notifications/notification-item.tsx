@@ -2,6 +2,7 @@
 
 import {
   AlertTriangle,
+  Check,
   ClipboardList,
   FileSignature,
   Inbox,
@@ -19,6 +20,7 @@ interface NotificationItemProps {
   notification: AppNotification;
   compact?: boolean;
   onOpen: (notification: AppNotification) => void;
+  onMarkAsRead?: (notification: AppNotification) => void;
 }
 
 function NotificationIcon({ type }: { type: AppNotification["type"] }) {
@@ -27,6 +29,7 @@ function NotificationIcon({ type }: { type: AppNotification["type"] }) {
   if (category === "new_request") return <Inbox className="size-4" />;
   if (type === "contract_signed") return <FileSignature className="size-4" />;
   if (type === "task_assigned") return <ClipboardList className="size-4" />;
+  if (type === "app_update") return <Megaphone className="size-4" />;
   return <Megaphone className="size-4" />;
 }
 
@@ -34,21 +37,25 @@ export function NotificationItem({
   notification,
   compact = false,
   onOpen,
+  onMarkAsRead,
 }: NotificationItemProps) {
   const category = getNotificationCategory(notification.type);
 
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(notification)}
+    <div
       className={cn(
-        "flex w-full items-start gap-3 rounded-xl border text-left transition-colors",
+        "flex w-full items-start gap-2 rounded-xl border text-left transition-colors",
         compact ? "px-2.5 py-2" : "px-3 py-3",
         notification.isRead
-          ? "border-transparent bg-transparent hover:bg-[var(--atria-primary)]/[0.04]"
-          : "border-[var(--atria-accent)]/35 bg-[var(--atria-accent)]/12 hover:bg-[var(--atria-accent)]/18",
+          ? "border-transparent bg-transparent"
+          : "border-[var(--atria-accent)]/35 bg-[var(--atria-accent)]/12",
       )}
     >
+      <button
+        type="button"
+        onClick={() => onOpen(notification)}
+        className="flex min-w-0 flex-1 items-start gap-3 text-left hover:opacity-90"
+      >
       <span
         className={cn(
           "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg",
@@ -91,6 +98,19 @@ export function NotificationItem({
       {!notification.isRead ? (
         <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[var(--atria-accent)] ring-2 ring-[var(--atria-base)]" />
       ) : null}
-    </button>
+      </button>
+
+      {!notification.isRead && onMarkAsRead ? (
+        <button
+          type="button"
+          title="Marcar como lida"
+          aria-label="Marcar como lida"
+          onClick={() => onMarkAsRead(notification)}
+          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg text-[var(--atria-primary)]/50 transition-colors hover:bg-[var(--atria-primary)]/8 hover:text-[var(--atria-primary)]"
+        >
+          <Check className="size-4" />
+        </button>
+      ) : null}
+    </div>
   );
 }

@@ -27,10 +27,16 @@ let AppUpdatesController = class AppUpdatesController {
         this.appUpdatesService = appUpdatesService;
     }
     getAccess(user) {
-        return this.appUpdatesService.getAccess(user.role, user.companyId);
+        return this.appUpdatesService.getAccess(user.userId, user.role, user.companyId);
+    }
+    markAllAsRead(user) {
+        return this.appUpdatesService.markAsRead(user.userId);
+    }
+    markOneAsRead(user, id) {
+        return this.appUpdatesService.markOneAsRead(user.userId, id);
     }
     findAll(user) {
-        return this.appUpdatesService.findAll(user.role, user.companyId);
+        return this.appUpdatesService.findAll(user.userId, user.role, user.companyId);
     }
     create(user, dto) {
         return this.appUpdatesService.create(user.userId, user.companyId, dto);
@@ -50,6 +56,21 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppUpdatesController.prototype, "getAccess", null);
+__decorate([
+    (0, common_1.Post)('mark-read'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppUpdatesController.prototype, "markAllAsRead", null);
+__decorate([
+    (0, common_1.Post)(':id/mark-read'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], AppUpdatesController.prototype, "markOneAsRead", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),

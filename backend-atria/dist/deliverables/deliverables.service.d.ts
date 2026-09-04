@@ -42,8 +42,8 @@ export declare class DeliverablesService {
         updatedAt: Date;
         companyId: string;
         clientId: string | null;
-        kanbanTaskId: string | null;
         contentPostId: string | null;
+        kanbanTaskId: string | null;
         approvalStatus: import("@prisma/client").$Enums.DeliverableApprovalStatus;
         approvedAt: Date | null;
         approvedById: string | null;

@@ -37,6 +37,26 @@ function isRouteActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function NavItemBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return (
+    <span className="ml-auto flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#E8C39E] px-1.5 text-[10px] font-bold text-[#004949]">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
+function CollapsedNavItemBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return (
+    <span className="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#E8C39E] px-1 text-[9px] font-bold text-[#004949] ring-2 ring-[#004949]">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
 export function SidebarNav({
   onNavigate,
   className,
@@ -45,6 +65,7 @@ export function SidebarNav({
   const pathname = usePathname();
   const { user } = useAuth();
   const { data: appUpdatesAccess } = useAppUpdatesAccess();
+  const appUpdatesBadgeCount = appUpdatesAccess?.unreadCount ?? 0;
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
 
   const visibleSections = useMemo(() => {
@@ -80,7 +101,7 @@ export function SidebarNav({
           .filter((item): item is NonNullable<typeof item> => item !== null),
       }))
       .filter((section) => section.items.length > 0);
-  }, [appUpdatesAccess?.canView, user?.permissions, user?.role]);
+  }, [appUpdatesAccess?.canView, appUpdatesAccess?.unreadCount, user?.permissions, user?.role]);
 
   useEffect(() => {
     if (collapsed) {
@@ -165,6 +186,9 @@ export function SidebarNav({
               );
 
               if (collapsed) {
+                const badgeCount =
+                  item.href === "/app-updates" ? appUpdatesBadgeCount : 0;
+
                 return (
                   <Tooltip key={item.name}>
                     <TooltipTrigger
@@ -172,14 +196,18 @@ export function SidebarNav({
                         <Link
                           href={item.href}
                           onClick={onNavigate}
-                          className={itemClass}
+                          className={cn(itemClass, "relative")}
                           aria-label={item.name}
                         />
                       }
                     >
                       <Icon size={18} className={iconClass} />
+                      <CollapsedNavItemBadge count={badgeCount} />
                     </TooltipTrigger>
-                    <TooltipContent side="right">{item.name}</TooltipContent>
+                    <TooltipContent side="right">
+                      {item.name}
+                      {badgeCount > 0 ? ` (${badgeCount})` : ""}
+                    </TooltipContent>
                   </Tooltip>
                 );
               }
@@ -245,8 +273,11 @@ export function SidebarNav({
                   className={itemClass}
                 >
                   <Icon size={18} className={iconClass} />
-                  <span className="opacity-100 transition-opacity duration-300 ease-in-out">
-                    {item.name}
+                  <span className="flex min-w-0 flex-1 items-center gap-2 opacity-100 transition-opacity duration-300 ease-in-out">
+                    <span className="truncate">{item.name}</span>
+                    {item.href === "/app-updates" ? (
+                      <NavItemBadge count={appUpdatesBadgeCount} />
+                    ) : null}
                   </span>
                 </Link>
               );

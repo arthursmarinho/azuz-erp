@@ -1932,7 +1932,8 @@ export type NotificationType =
   | "post_rejected"
   | "due_date_warning"
   | "new_request"
-  | "system";
+  | "system"
+  | "app_update";
 
 export interface AppNotification {
   id: string;
@@ -1942,6 +1943,7 @@ export interface AppNotification {
   type: NotificationType;
   isRead: boolean;
   taskId?: string | null;
+  appUpdateId?: string | null;
   createdAt: string;
 }
 

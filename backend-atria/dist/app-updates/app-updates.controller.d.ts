@@ -7,8 +7,17 @@ export declare class AppUpdatesController {
     getAccess(user: AuthenticatedUser): Promise<{
         canView: boolean;
         canManage: boolean;
+        unreadCount: number;
+        updateCount: number;
+    }>;
+    markAllAsRead(user: AuthenticatedUser): Promise<{
+        success: boolean;
+    }>;
+    markOneAsRead(user: AuthenticatedUser, id: string): Promise<{
+        success: boolean;
     }>;
     findAll(user: AuthenticatedUser): Promise<{
+        isRead: boolean;
         id: string;
         title: string;
         body: string;

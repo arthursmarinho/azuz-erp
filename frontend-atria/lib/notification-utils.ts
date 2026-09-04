@@ -26,6 +26,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   post_pending: "Conteúdo",
   post_rejected: "Conteúdo",
   system: "Sistema",
+  app_update: "Atualização",
 };
 
 const DUE_DATE_TYPES = new Set<string>(["due_date_warning"]);
@@ -53,6 +54,8 @@ export function getNotificationHref(notification: AppNotification): string {
     case "post_pending":
     case "post_rejected":
       return "/content/management";
+    case "app_update":
+      return "/app-updates";
     default:
       return "/dashboard?tab=notifications";
   }
