@@ -14,6 +14,7 @@ import {
   EventCategory,
   KanbanColumn,
   KanbanColumnType,
+  KanbanTaskContentType,
   KanbanTaskPriority,
   KanbanTaskStatus,
   InternalReviewStatus,
@@ -30,6 +31,7 @@ import { assertKanbanTaskEditAccess, assertMasterRole, canEditAllKanban } from '
 import { PrismaService, PRISMA_TRANSACTION_OPTIONS } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SlaService } from '../sla/sla.service';
+import { resolveTaskContentType } from './kanban-content-type';
 import { DEFAULT_TASK_STATUS } from './kanban-defaults';
 import {
   KANBAN_STATUS_DEFINITIONS,
@@ -38,6 +40,8 @@ import {
   statusToApi,
 } from './kanban-status';
 import {
+  contentTypeRequiresScript,
+  defaultProductionPhaseForContentType,
   isProductionPhase,
   resolveProductionPhaseForStatus,
   resolveTaskDisplayColor,
@@ -101,6 +105,7 @@ type PreparedTaskCreate = {
   columnId: string;
   status: KanbanTaskStatus;
   productionPhase: ProductionPhase | null;
+  contentType: KanbanTaskContentType;
   clientId?: string;
   contentPostId?: string;
   calendarEventId?: string;
@@ -260,7 +265,9 @@ export class KanbanService {
   }
 
   async prepareTaskCreate(userId: string, dto: CreateTaskDto) {
-    const column = await this.ensureColumnExists(dto.columnId);
+    const column = dto.columnId
+      ? await this.ensureColumnExists(dto.columnId)
+      : null;
     if (dto.clientId) await this.ensureClientExists(dto.clientId);
 
     const assignedGroupId = dto.assignedGroupId ?? null;
@@ -274,13 +281,18 @@ export class KanbanService {
     });
     await this.validateAssignees(assigneeIds);
 
-    const status = dto.status ?? column.statusKey ?? DEFAULT_TASK_STATUS;
+    const status = dto.status ?? column?.statusKey ?? DEFAULT_TASK_STATUS;
     const statusColumn = await this.resolveColumnForStatus(status);
-    const columnId = statusColumn?.id ?? dto.columnId;
+    const columnId = statusColumn?.id ?? column?.id;
+    if (!columnId) {
+      throw new BadRequestException('Nenhuma coluna do kanban configurada.');
+    }
+    const contentType = resolveTaskContentType(dto.contentType);
     const productionPhase = resolveProductionPhaseForStatus(
       status,
       null,
       dto.productionPhase,
+      contentType,
     );
     this.assertValidProductionColumnTarget(status, productionPhase);
     const priority = dto.priority ?? KanbanTaskPriority.MEDIUM;
@@ -306,6 +318,7 @@ export class KanbanService {
       columnId,
       status,
       productionPhase,
+      contentType,
       clientId: dto.clientId,
       contentPostId: dto.contentPostId,
       calendarEventId,
@@ -336,6 +349,7 @@ export class KanbanService {
         columnId: prepared.columnId,
         status: prepared.status,
         productionPhase: prepared.productionPhase,
+        contentType: prepared.contentType,
         clientId: prepared.clientId,
         contentPostId: prepared.contentPostId,
         calendarEventId: prepared.calendarEventId,
@@ -483,10 +497,25 @@ export class KanbanService {
       resolvedAt = null;
     }
 
+    const nextContentType = dto.contentType ?? existing.contentType;
+    let requestedProductionPhase = dto.productionPhase;
+    if (
+      dto.contentType &&
+      dto.productionPhase === undefined &&
+      resolvedStatus === KanbanTaskStatus.FALTA_GRAVAR &&
+      contentTypeRequiresScript(dto.contentType) !==
+        contentTypeRequiresScript(existing.contentType)
+    ) {
+      requestedProductionPhase = defaultProductionPhaseForContentType(
+        dto.contentType,
+      );
+    }
+
     const resolvedProductionPhase = resolveProductionPhaseForStatus(
       resolvedStatus,
       existing.productionPhase,
-      dto.productionPhase,
+      requestedProductionPhase,
+      nextContentType,
     );
     this.assertValidProductionColumnTarget(
       resolvedStatus,
@@ -518,6 +547,7 @@ export class KanbanService {
           columnId: resolvedColumnId,
           status: resolvedStatus,
           productionPhase: resolvedProductionPhase,
+          contentType: dto.contentType,
           clientId: dto.clientId,
           assignedGroupId:
             dto.assignedGroupId !== undefined
@@ -612,6 +642,8 @@ export class KanbanService {
     const resolvedProductionPhase = resolveProductionPhaseForStatus(
       dto.status,
       existing.productionPhase,
+      undefined,
+      existing.contentType,
     );
     this.assertValidProductionColumnTarget(
       dto.status,
@@ -670,6 +702,8 @@ export class KanbanService {
     const resolvedProductionPhase = resolveProductionPhaseForStatus(
       newStatus,
       task.productionPhase,
+      undefined,
+      task.contentType,
     );
     this.assertValidProductionColumnTarget(newStatus, resolvedProductionPhase);
 

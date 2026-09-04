@@ -1,10 +1,12 @@
 import type {
   CalendarEvent,
   CalendarEventClient,
+  KanbanTask,
   KanbanTaskStatus,
   ProductionPhase,
 } from "@/services/types";
 import { DEFAULT_PRODUCTION_PHASE } from "@/lib/production-phase";
+import { contentTypeRequiresScript } from "@/lib/task-content-type";
 
 export type CalendarView = "day" | "week" | "month";
 
@@ -64,7 +66,8 @@ export function canChangeEventProductionPhase(
   >,
 ): boolean {
   if (!event.kanbanTaskId) return false;
-  return getEventTaskStatus(event) === "falta_gravar";
+  if (getEventTaskStatus(event) !== "falta_gravar") return false;
+  return contentTypeRequiresScript(event.task?.contentType);
 }
 
 export function getEventProductionPhaseOrDefault(
@@ -295,4 +298,108 @@ export function getClientInitials(name: string) {
 
 export function formatHourLabel(hour: number) {
   return `${String(hour).padStart(2, "0")}:00`;
+}
+
+export function calendarEventFromTask(task: KanbanTask): CalendarEvent {
+  const publicationDate =
+    task.publicationDate ?? task.dueDate ?? new Date().toISOString();
+  const deliveryDate = task.deliveryDate ?? task.dueDate ?? publicationDate;
+
+  return {
+    id: task.calendarEventId ?? `task:${task.id}`,
+    title: task.title,
+    description: task.description,
+    publicationDate,
+    startAt: publicationDate,
+    endAt: deliveryDate,
+    category: "deadline",
+    color: task.statusColor,
+    referenceUrl: task.referenceUrl,
+    isPending: false,
+    kanbanTaskId: task.id,
+    taskStatus: task.status,
+    taskStatusColor: task.statusColor,
+    productionPhase: task.productionPhase,
+    task: {
+      id: task.id,
+      status: task.status,
+      productionPhase: task.productionPhase,
+      contentType: task.contentType,
+      statusColor: task.statusColor,
+      statusLabel: task.statusLabel,
+      publicationDate: task.publicationDate ?? null,
+      deliveryDate: task.deliveryDate ?? task.dueDate ?? null,
+      dueDate: task.dueDate,
+    },
+    clientId: task.clientId,
+    client: task.client
+      ? {
+          id: task.client.id,
+          name: task.client.companyName,
+          companyName: task.client.companyName,
+          avatarUrl: task.client.avatarUrl,
+          color: task.statusColor,
+        }
+      : null,
+    createdBy: task.createdBy,
+    assignee: task.assignees[0] ?? null,
+    assignedGroupId: task.assignedGroupId,
+    assignedGroup: task.assignedGroup,
+  };
+}
+
+export function overlayTaskOnCalendarEvent(
+  event: CalendarEvent,
+  task: KanbanTask,
+): CalendarEvent {
+  return {
+    ...event,
+    taskStatus: task.status,
+    productionPhase: task.productionPhase,
+    taskStatusColor: task.statusColor,
+    color: task.statusColor,
+    publicationDate: task.publicationDate ?? event.publicationDate ?? event.startAt,
+    task: {
+      id: task.id,
+      status: task.status,
+      productionPhase: task.productionPhase,
+      contentType: task.contentType,
+      statusColor: task.statusColor,
+      statusLabel: task.statusLabel,
+      publicationDate: task.publicationDate ?? null,
+      deliveryDate: task.deliveryDate ?? task.dueDate ?? null,
+      dueDate: task.dueDate,
+    },
+  };
+}
+
+export function mergeCalendarEventsWithTasks(
+  events: CalendarEvent[],
+  tasks: KanbanTask[],
+): CalendarEvent[] {
+  const eventsByTaskId = new Map<string, CalendarEvent>();
+  const eventIds = new Set<string>();
+
+  for (const event of events) {
+    eventIds.add(event.id);
+    if (event.kanbanTaskId) {
+      eventsByTaskId.set(event.kanbanTaskId, event);
+    }
+  }
+
+  const merged = events.map((event) => {
+    if (!event.kanbanTaskId) return event;
+    const task = tasks.find((entry) => entry.id === event.kanbanTaskId);
+    return task ? overlayTaskOnCalendarEvent(event, task) : event;
+  });
+
+  const extras: CalendarEvent[] = [];
+  for (const task of tasks) {
+    if (!task.publicationDate) continue;
+    if (eventsByTaskId.has(task.id)) continue;
+    if (task.calendarEventId && eventIds.has(task.calendarEventId)) continue;
+    extras.push(calendarEventFromTask(task));
+  }
+
+  return extras.length > 0 ? [...merged, ...extras] : merged;
 }

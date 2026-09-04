@@ -200,6 +200,7 @@ export interface CalendarEventTask {
   id: string;
   status: KanbanTaskStatus;
   productionPhase: ProductionPhase | null;
+  contentType?: KanbanTaskContentType;
   statusColor: string;
   statusLabel: string;
   publicationDate: string | null;
@@ -282,6 +283,12 @@ export type KanbanTaskStatus =
 
 export type ProductionPhase = "roteiro" | "em_gravacao";
 
+export type KanbanTaskContentType =
+  | "video_with_script"
+  | "static"
+  | "carousel"
+  | "stories_no_script";
+
 export interface KanbanColumn {
   id: string;
   title: string;
@@ -342,6 +349,7 @@ export interface KanbanTask {
   isBypassingInternalReview?: boolean;
   status: KanbanTaskStatus;
   productionPhase: ProductionPhase | null;
+  contentType: KanbanTaskContentType;
   statusColor: string;
   statusLabel: string;
   priority: KanbanPriority;
@@ -380,7 +388,8 @@ export interface CreateTaskInput {
   description?: string;
   postCaption?: string;
   referenceUrl?: string | null;
-  columnId: string;
+  columnId?: string;
+  contentType?: KanbanTaskContentType;
   status?: KanbanTaskStatus;
   productionPhase?: ProductionPhase;
   priority?: KanbanPriority;

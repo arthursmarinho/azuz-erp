@@ -29,6 +29,10 @@ import {
   STATUS_LABELS,
 } from "@/lib/kanban-utils";
 import {
+  DEFAULT_TASK_CONTENT_TYPE,
+} from "@/lib/task-content-type";
+import { TaskContentTypePicker } from "@/components/kanban/task-content-type-picker";
+import {
   TaskStatusBadge,
   TaskStatusSelect,
 } from "@/components/kanban/task-status-select";
@@ -53,6 +57,7 @@ import type {
   InternalReviewStatus,
   KanbanColumn,
   KanbanTask,
+  KanbanTaskContentType,
   KanbanTaskStatus,
   KanbanTaskAsset,
   TaskHistoryEntry,
@@ -140,6 +145,9 @@ export function TaskDetailDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<KanbanTaskStatus>(DEFAULT_TASK_STATUS);
+  const [contentType, setContentType] = useState<KanbanTaskContentType>(
+    DEFAULT_TASK_CONTENT_TYPE,
+  );
   const [columnId, setColumnId] = useState("");
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [assignedGroupId, setAssignedGroupId] = useState("");
@@ -157,6 +165,7 @@ export function TaskDetailDialog({
     setTitle(task.title);
     setDescription(task.description ?? "");
     setStatus(task.status);
+    setContentType(task.contentType ?? DEFAULT_TASK_CONTENT_TYPE);
     setColumnId(task.columnId);
     setAssigneeIds(task.assignees.map((a) => a.id));
     setAssignedGroupId(task.assignedGroupId ?? "");
@@ -281,6 +290,7 @@ export function TaskDetailDialog({
           title,
           description,
           status,
+          contentType,
           columnId,
           assigneeIds,
           assignedGroupId: assignedGroupId || null,
@@ -580,6 +590,15 @@ export function TaskDetailDialog({
                     value={referenceUrl}
                     onChange={setReferenceUrl}
                   />
+
+                  <Field>
+                    <FieldLabel>Tipo de conteúdo</FieldLabel>
+                    <TaskContentTypePicker
+                      value={contentType}
+                      onChange={setContentType}
+                      disabled={!canEdit}
+                    />
+                  </Field>
 
                   <Field>
                     <FieldLabel htmlFor="detail-status">Status</FieldLabel>

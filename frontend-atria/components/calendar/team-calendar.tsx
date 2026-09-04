@@ -33,6 +33,7 @@ import {
   getEventPublicationAt,
   getViewDateRange,
   getWeekDays,
+  mergeCalendarEventsWithTasks,
 } from "@/lib/calendar-utils";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -130,43 +131,10 @@ export function TeamCalendar() {
       document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
-  const events = useMemo(() => {
-    return fetchedEvents.map((evt) => {
-      if (!evt.kanbanTaskId) return evt;
-
-      const cachedTask = tasks.find((entry) => entry.id === evt.kanbanTaskId);
-      const taskStatus = cachedTask?.status ?? evt.taskStatus ?? evt.task?.status ?? null;
-      const productionPhase =
-        cachedTask?.productionPhase ??
-        evt.productionPhase ??
-        evt.task?.productionPhase ??
-        null;
-      const statusColor =
-        cachedTask?.statusColor ?? evt.taskStatusColor ?? evt.task?.statusColor ?? evt.color;
-
-      return {
-        ...evt,
-        taskStatus,
-        productionPhase,
-        taskStatusColor: statusColor,
-        color: statusColor,
-        publicationDate:
-          cachedTask?.publicationDate ?? evt.publicationDate ?? evt.startAt,
-        task: cachedTask
-          ? {
-              id: cachedTask.id,
-              status: cachedTask.status,
-              productionPhase: cachedTask.productionPhase,
-              statusColor: cachedTask.statusColor,
-              statusLabel: cachedTask.statusLabel,
-              publicationDate: cachedTask.publicationDate ?? null,
-              deliveryDate: cachedTask.deliveryDate ?? cachedTask.dueDate ?? null,
-              dueDate: cachedTask.dueDate,
-            }
-          : evt.task,
-      };
-    });
-  }, [fetchedEvents, tasks]);
+  const events = useMemo(
+    () => mergeCalendarEventsWithTasks(fetchedEvents, tasks),
+    [fetchedEvents, tasks],
+  );
 
   useEffect(() => {
     if (!detailOpen || !selectedEvent) return;

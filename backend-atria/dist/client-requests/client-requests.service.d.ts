@@ -345,6 +345,7 @@ export declare class ClientRequestsService {
             description: string | null;
             status: import("../kanban/kanban-status").KanbanTaskStatusApi;
             productionPhase: import("../kanban/production-phase").ProductionPhaseApi | null;
+            contentType: import("../kanban/kanban-content-type").KanbanTaskContentTypeApi;
             statusColor: string;
             statusLabel: string;
             dueDate: string | null;

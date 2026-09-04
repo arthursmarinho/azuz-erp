@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueryTasksDto = exports.UpdateTaskStatusDto = exports.MoveTaskDto = exports.UpdateTaskDto = exports.CreateTaskDto = void 0;
 const class_transformer_1 = require("class-transformer");
@@ -19,6 +20,7 @@ class CreateTaskDto {
     description;
     postCaption;
     columnId;
+    contentType;
     priority;
     status;
     productionPhase;
@@ -52,9 +54,15 @@ __decorate([
     __metadata("design:type", String)
 ], CreateTaskDto.prototype, "postCaption", void 0);
 __decorate([
-    (0, entity_id_1.IsEntityId)(),
+    (0, entity_id_1.IsEntityId)({ optional: true }),
     __metadata("design:type", String)
 ], CreateTaskDto.prototype, "columnId", void 0);
+__decorate([
+    (0, entity_id_1.ToUpperEnum)(),
+    (0, class_validator_1.IsEnum)(client_1.KanbanTaskContentType),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", typeof (_a = typeof client_1.KanbanTaskContentType !== "undefined" && client_1.KanbanTaskContentType) === "function" ? _a : Object)
+], CreateTaskDto.prototype, "contentType", void 0);
 __decorate([
     (0, entity_id_1.ToUpperEnum)(),
     (0, class_validator_1.IsEnum)(client_1.KanbanTaskPriority),
@@ -121,6 +129,7 @@ class UpdateTaskDto {
     description;
     postCaption;
     columnId;
+    contentType;
     priority;
     status;
     productionPhase;
@@ -156,6 +165,12 @@ __decorate([
     (0, entity_id_1.IsEntityId)({ optional: true }),
     __metadata("design:type", String)
 ], UpdateTaskDto.prototype, "columnId", void 0);
+__decorate([
+    (0, entity_id_1.ToUpperEnum)(),
+    (0, class_validator_1.IsEnum)(client_1.KanbanTaskContentType),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", typeof (_b = typeof client_1.KanbanTaskContentType !== "undefined" && client_1.KanbanTaskContentType) === "function" ? _b : Object)
+], UpdateTaskDto.prototype, "contentType", void 0);
 __decorate([
     (0, entity_id_1.ToUpperEnum)(),
     (0, class_validator_1.IsEnum)(client_1.KanbanTaskPriority),

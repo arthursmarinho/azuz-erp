@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.toTaskClientResponse = toTaskClientResponse;
 exports.toUnifiedTaskCore = toUnifiedTaskCore;
 const client_1 = require("@prisma/client");
+const kanban_content_type_1 = require("./kanban-content-type");
 const kanban_status_1 = require("./kanban-status");
 const production_phase_1 = require("./production-phase");
 function toTaskClientResponse(client) {
@@ -25,6 +26,7 @@ function toUnifiedTaskCore(task) {
         description: task.description,
         status: (0, kanban_status_1.statusToApi)(task.status),
         productionPhase,
+        contentType: (0, kanban_content_type_1.contentTypeToApi)((0, kanban_content_type_1.resolveTaskContentType)(task.contentType)),
         statusColor: (0, production_phase_1.resolveTaskDisplayColor)(task.status, task.productionPhase, kanban_status_1.STATUS_COLORS),
         statusLabel: (0, production_phase_1.resolveTaskDisplayLabel)(task.status, task.productionPhase, kanban_status_1.STATUS_LABELS),
         dueDate: task.dueDate?.toISOString() ?? null,

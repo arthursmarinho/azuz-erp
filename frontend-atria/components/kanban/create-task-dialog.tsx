@@ -17,7 +17,11 @@ import { ReferenceUrlField } from "@/components/ui/reference-url-field";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useCreateTaskMutation } from "@/hooks/use-task-mutations";
 import { fromDateTimeLocalValue } from "@/lib/datetime-local";
-import { DEFAULT_TASK_STATUS } from "@/lib/kanban-utils";
+import {
+  DEFAULT_TASK_CONTENT_TYPE,
+  defaultProductionPhaseForContentType,
+} from "@/lib/task-content-type";
+import { TaskContentTypePicker } from "@/components/kanban/task-content-type-picker";
 import { toast } from "@/lib/toast";
 import {
   ApiError,
@@ -27,23 +31,17 @@ import {
 } from "@/services";
 import type {
   Client,
-  KanbanColumn,
   KanbanTask,
+  KanbanTaskContentType,
   TeamMember,
   UserGroup,
 } from "@/services/types";
 
 interface CreateTaskDialogProps {
-  columns: KanbanColumn[];
-  defaultColumnId?: string;
   onSuccess: (task: KanbanTask) => void;
 }
 
-export function CreateTaskDialog({
-  columns,
-  defaultColumnId,
-  onSuccess,
-}: CreateTaskDialogProps) {
+export function CreateTaskDialog({ onSuccess }: CreateTaskDialogProps) {
   const createTaskMutation = useCreateTaskMutation();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +52,9 @@ export function CreateTaskDialog({
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [columnId, setColumnId] = useState(defaultColumnId ?? columns[0]?.id ?? "");
+  const [contentType, setContentType] = useState<KanbanTaskContentType>(
+    DEFAULT_TASK_CONTENT_TYPE,
+  );
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [assignedGroupId, setAssignedGroupId] = useState("");
   const [clientId, setClientId] = useState("");
@@ -84,21 +84,15 @@ export function CreateTaskDialog({
         if (!cancelled) setOptionsLoading(false);
       });
 
-    const preferred =
-      defaultColumnId ??
-      columns.find((column) => column.statusKey === DEFAULT_TASK_STATUS)?.id ??
-      columns[0]?.id ??
-      "";
-    setColumnId(preferred);
-
     return () => {
       cancelled = true;
     };
-  }, [open, defaultColumnId, columns]);
+  }, [open]);
 
   function resetForm() {
     setTitle("");
     setDescription("");
+    setContentType(DEFAULT_TASK_CONTENT_TYPE);
     setAssigneeIds([]);
     setAssignedGroupId("");
     setClientId("");
@@ -122,8 +116,8 @@ export function CreateTaskDialog({
       const created = await createTaskMutation.mutateAsync({
         title,
         description: description || undefined,
-        columnId,
-        status: DEFAULT_TASK_STATUS,
+        contentType,
+        productionPhase: defaultProductionPhaseForContentType(contentType),
         assigneeIds,
         assignedGroupId: assignedGroupId || undefined,
         clientId: clientId || undefined,
@@ -196,6 +190,14 @@ export function CreateTaskDialog({
               />
             </Field>
 
+            <Field>
+              <FieldLabel>Tipo de conteúdo</FieldLabel>
+              <TaskContentTypePicker
+                value={contentType}
+                onChange={setContentType}
+              />
+            </Field>
+
             <ReferenceUrlField
               id="task-reference"
               value={referenceUrl}
@@ -219,23 +221,6 @@ export function CreateTaskDialog({
                   label: client.companyName,
                 }))}
               />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="task-column">Coluna</FieldLabel>
-              <select
-                id="task-column"
-                value={columnId}
-                onChange={(e) => setColumnId(e.target.value)}
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                required
-              >
-                {columns.map((column) => (
-                  <option key={column.id} value={column.id}>
-                    {column.title}
-                  </option>
-                ))}
-              </select>
             </Field>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -312,7 +297,7 @@ export function CreateTaskDialog({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !columnId}
+              disabled={loading || !title.trim()}
               className="bg-[var(--atria-primary)] text-white"
             >
               {loading ? "Salvando..." : "Criar"}

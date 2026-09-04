@@ -20,6 +20,10 @@ test.describe('Kanban task workflows', () => {
     ).toBeVisible();
 
     await page.getByLabel('Título').fill(`PW Task ${Date.now()}`);
+    await expect(page.getByRole('group', { name: 'Tipo de conteúdo' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Vídeo/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Estático' })).toBeVisible();
+    await expect(page.getByLabel('Coluna')).toHaveCount(0);
     await page.getByRole('button', { name: 'Criar' }).click();
 
     await expect(

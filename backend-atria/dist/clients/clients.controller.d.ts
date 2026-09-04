@@ -92,8 +92,8 @@ export declare class ClientsController {
             id: string;
             title: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
-            status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
+            format: "static" | "carousel" | "reels" | "story";
+            status: "approved" | "rejected" | "draft" | "scheduled" | "published" | "pending_approval";
             scheduledDate: string | null;
             copy: string;
             referenceUrl: string | null;
@@ -187,8 +187,8 @@ export declare class ClientsController {
             isPending: boolean;
             color: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
-            status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
+            format: "static" | "carousel" | "reels" | "story";
+            status: "approved" | "rejected" | "draft" | "scheduled" | "published" | "pending_approval";
             assignee: null;
         })[];
         meetings: ({
@@ -217,8 +217,8 @@ export declare class ClientsController {
             isPending: boolean;
             color: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
-            status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
+            format: "static" | "carousel" | "reels" | "story";
+            status: "approved" | "rejected" | "draft" | "scheduled" | "published" | "pending_approval";
             assignee: null;
         })[];
         releases: ({
@@ -247,8 +247,8 @@ export declare class ClientsController {
             isPending: boolean;
             color: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
-            status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
+            format: "static" | "carousel" | "reels" | "story";
+            status: "approved" | "rejected" | "draft" | "scheduled" | "published" | "pending_approval";
             assignee: null;
         })[];
     } | {

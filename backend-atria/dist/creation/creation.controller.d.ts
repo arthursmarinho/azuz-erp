@@ -31,8 +31,8 @@ export declare class CreationController {
             clientName: string;
             clientAvatarUrl: string | null;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
-            status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
+            format: "static" | "carousel" | "reels" | "story";
+            status: "approved" | "rejected" | "draft" | "scheduled" | "published" | "pending_approval";
             assignee: {
                 id: string;
                 name: string;
@@ -54,8 +54,8 @@ export declare class CreationController {
             clientId: string;
             clientName: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
-            status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
+            format: "static" | "carousel" | "reels" | "story";
+            status: "approved" | "rejected" | "draft" | "scheduled" | "published" | "pending_approval";
             scheduledAt: string;
             color: string;
         } | {
@@ -347,7 +347,7 @@ export declare class CreationController {
         ideas: {
             title: string;
             copy: string;
-            format: "carousel" | "reels" | "static" | "story";
+            format: "static" | "carousel" | "reels" | "story";
             mediaConcept: string;
             suggestedDate: string;
         }[];
@@ -377,11 +377,11 @@ export declare class CreationController {
             copy: string;
             referenceUrl: string | null;
             attachments: {
-                url: string;
                 id: string;
                 createdAt: Date;
                 name: string;
                 postId: string;
+                url: string;
                 mimeType: string | null;
             }[];
             author: {
@@ -458,6 +458,7 @@ export declare class CreationController {
             description: string | null;
             status: import("../kanban/kanban-status").KanbanTaskStatusApi;
             productionPhase: import("../kanban/production-phase").ProductionPhaseApi | null;
+            contentType: import("../kanban/kanban-content-type").KanbanTaskContentTypeApi;
             statusColor: string;
             statusLabel: string;
             dueDate: string | null;
