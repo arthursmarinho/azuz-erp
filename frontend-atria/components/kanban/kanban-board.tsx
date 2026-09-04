@@ -21,6 +21,7 @@ import { useTasks } from "@/hooks/use-tasks";
 import { PermissionGate } from "@/components/auth/permission-gate";
 import { Permission } from "@/lib/permissions";
 import { DEFAULT_TASK_STATUS } from "@/lib/kanban-utils";
+import { matchesRecordingFilter } from "@/lib/production-phase";
 import { taskKeys } from "@/lib/query-keys";
 import type { Client, KanbanColumn, KanbanTask, TeamMember } from "@/services/types";
 import { ColumnHeader } from "./column-header";
@@ -37,6 +38,7 @@ import { useTaskDetail } from "./task-detail-provider";
 const EMPTY_FILTERS: KanbanFiltersState = {
   assigneeId: "",
   clientId: "",
+  recordingFilter: "",
 };
 
 export function KanbanBoard() {
@@ -101,6 +103,7 @@ export function KanbanBoard() {
         return false;
       }
       if (filters.clientId && task.clientId !== filters.clientId) return false;
+      if (!matchesRecordingFilter(task, filters.recordingFilter)) return false;
       return true;
     });
   }, [tasks, filters]);
