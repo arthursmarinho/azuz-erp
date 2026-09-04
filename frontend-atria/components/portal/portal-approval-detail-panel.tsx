@@ -253,14 +253,12 @@ export function PortalApprovalDetailPanel({
             items={deliverableItems}
             onItemsChange={setDeliverableItems}
             onRevisionSubmitted={reloadMedia}
-            onReviseItem={(itemId, data) =>
-              actions.reviseDeliverableItem(itemId, data)
-            }
             onApproveItem={(itemId) =>
               actions.reviseDeliverableItem(itemId, { status: "approved" })
             }
             resolveMediaUrl={actions.resolveAssetUrl}
             showHeaderActions={deliverableItems.length > 0}
+            allowItemAdjustment={false}
             emptyMessage="Nenhuma mídia anexada nesta entrega."
           />
         )}

@@ -41,6 +41,7 @@ interface DeliverableMediaGridProps {
   onDownloadAllItems?: (items: DeliverableItem[]) => Promise<void>;
   resolveMediaUrl?: (url: string) => string | undefined;
   showHeaderActions?: boolean;
+  allowItemAdjustment?: boolean;
   emptyMessage?: string;
   className?: string;
 }
@@ -71,6 +72,7 @@ export function DeliverableMediaGrid({
   onDownloadAllItems,
   resolveMediaUrl: resolveMediaUrlProp,
   showHeaderActions = true,
+  allowItemAdjustment = true,
   emptyMessage = "Nenhuma mídia disponível.",
   className,
 }: DeliverableMediaGridProps) {
@@ -330,16 +332,18 @@ export function DeliverableMediaGrid({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => openRevision(item)}
-                  >
-                    <MessageSquareWarning className="size-3.5" />
-                    Solicitar Ajuste
-                  </Button>
+                  {allowItemAdjustment && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={() => openRevision(item)}
+                    >
+                      <MessageSquareWarning className="size-3.5" />
+                      Solicitar Ajuste
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     size="sm"
@@ -362,13 +366,15 @@ export function DeliverableMediaGrid({
         })}
       </div>
 
-      <MediaRevisionDrawer
-        item={revisionItem}
-        open={revisionOpen}
-        onOpenChange={setRevisionOpen}
-        onSubmit={handleRevisionSubmit}
-        loading={revisionLoading}
-      />
+      {allowItemAdjustment && (
+        <MediaRevisionDrawer
+          item={revisionItem}
+          open={revisionOpen}
+          onOpenChange={setRevisionOpen}
+          onSubmit={handleRevisionSubmit}
+          loading={revisionLoading}
+        />
+      )}
 
       <MediaLightbox
         items={lightboxItems}
@@ -377,12 +383,16 @@ export function DeliverableMediaGrid({
         onClose={() => setLightboxOpen(false)}
         onIndexChange={setLightboxIndex}
         onDownload={(item) => handleDownload(item)}
-        onRequestAdjustment={(item) => {
-          const match = sortedItems.find((entry) => entry.id === item.id);
-          if (!match) return;
-          setLightboxOpen(false);
-          openRevision(match);
-        }}
+        onRequestAdjustment={
+          allowItemAdjustment
+            ? (item) => {
+                const match = sortedItems.find((entry) => entry.id === item.id);
+                if (!match) return;
+                setLightboxOpen(false);
+                openRevision(match);
+              }
+            : undefined
+        }
         onApprove={handleApprove}
         downloading={Boolean(downloadingId)}
         approving={Boolean(approvingId)}

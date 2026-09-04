@@ -131,7 +131,8 @@ export function LeadsKanbanBoard({
   );
 
   const hasActiveFilters =
-    searchQuery.trim().length > 0 || categoryFilter !== "all";
+    !portalClientView &&
+    (searchQuery.trim().length > 0 || categoryFilter !== "all");
 
   const dragDisabled =
     hasActiveFilters || isDragDisabledForZone(crmMoveZone, portalClientView);
@@ -147,6 +148,8 @@ export function LeadsKanbanBoard({
   );
 
   const filteredColumns = useMemo(() => {
+    if (portalClientView) return columns;
+
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     return columns.map((column) => ({
@@ -162,7 +165,7 @@ export function LeadsKanbanBoard({
         return leadMatchesSearchQuery(lead, normalizedQuery);
       }),
     }));
-  }, [columns, searchQuery, categoryFilter]);
+  }, [columns, searchQuery, categoryFilter, portalClientView]);
 
   const filteredTotal = useMemo(
     () => filteredColumns.reduce((sum, column) => sum + column.leads.length, 0),
@@ -576,35 +579,37 @@ export function LeadsKanbanBoard({
         />
       ) : (
         <>
-          <div className="flex flex-col gap-3 rounded-2xl border border-[var(--atria-primary)]/10 bg-white p-4 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--atria-primary)]/40" />
-              <Input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Buscar por nome, telefone, cidade, endereço..."
-                className="pl-9"
-              />
+          {!portalClientView && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--atria-primary)]/10 bg-white p-4 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--atria-primary)]/40" />
+                <Input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Buscar por nome, telefone, cidade, endereço..."
+                  className="pl-9"
+                />
+              </div>
+              <Select
+                value={categoryFilter}
+                onValueChange={(value) => {
+                  if (value) setCategoryFilter(value);
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-56">
+                  <SelectValue placeholder="Todas as categorias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  {categoryOptions.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Select
-              value={categoryFilter}
-              onValueChange={(value) => {
-                if (value) setCategoryFilter(value);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-56">
-                <SelectValue placeholder="Todas as categorias" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as categorias</SelectItem>
-                {categoryOptions.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          )}
 
           {!portalClientView && crmMoveZone !== "all" && (
             <p className="text-xs text-[var(--atria-primary)]/45">
