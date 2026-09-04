@@ -1,6 +1,10 @@
 import { KanbanTaskStatus, ProductionPhase } from '@prisma/client';
 import { DEFAULT_TASK_STATUS } from './kanban-defaults';
 import {
+  DEFAULT_TASK_CONTENT_TYPE,
+  contentTypeToApi,
+} from './kanban-content-type';
+import {
   STATUS_COLORS,
   STATUS_LABELS,
   statusFromApi,
@@ -21,6 +25,7 @@ describe('Kanban defaults & status', () => {
     expect(STATUS_LABELS[DEFAULT_TASK_STATUS]).toBe('Em produção');
     expect(PRODUCTION_PHASE_COLORS[DEFAULT_PRODUCTION_PHASE]).toBe('#92400E');
     expect(PRODUCTION_PHASE_LABELS[DEFAULT_PRODUCTION_PHASE]).toBe('Roteiro');
+    expect(contentTypeToApi(DEFAULT_TASK_CONTENT_TYPE)).toBe('video_with_script');
   });
 
   it('maps status to/from API safely', () => {
@@ -51,6 +56,7 @@ describe('Kanban task mapper', () => {
 
     expect(core.status).toBe('falta_gravar');
     expect(core.productionPhase).toBe('em_gravacao');
+    expect(core.contentType).toBe('video_with_script');
     expect(core.statusColor).toBe('#EC4899');
     expect(core.statusLabel).toBe('Em gravação');
     expect(core.dueDate).toBeNull();

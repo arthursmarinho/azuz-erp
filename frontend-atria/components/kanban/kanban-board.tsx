@@ -236,7 +236,6 @@ export function KanbanBoard() {
             </Button>
           </PermissionGate>
           <CreateTaskDialog
-            columns={columns}
             onSuccess={handleTaskCreated}
           />
         </div>

@@ -123,6 +123,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -193,6 +194,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -263,6 +265,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -333,6 +336,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -403,6 +407,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -473,6 +478,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -543,6 +549,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -613,6 +620,7 @@ export declare class KanbanController {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;

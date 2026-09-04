@@ -25,6 +25,7 @@ import { resolveMediaUrl } from "@/lib/media-url";
 import { cn } from "@/lib/utils";
 import { ClientName } from "@/components/ui/client-name";
 import type { KanbanColumn, KanbanTask } from "@/services/types";
+import { getTaskContentTypeLabel } from "@/lib/task-content-type";
 
 interface TaskCardProps {
   task: KanbanTask;
@@ -148,6 +149,10 @@ export function TaskCard({ task, column, onClick }: TaskCardProps) {
               {task.client.companyName}
             </ClientName>
           )}
+
+          <p className="mb-2 text-[10px] font-medium text-[var(--atria-primary)]/55">
+            {getTaskContentTypeLabel(task.contentType)}
+          </p>
 
           {task.assignees.length > 0 && (
             <TooltipProvider>

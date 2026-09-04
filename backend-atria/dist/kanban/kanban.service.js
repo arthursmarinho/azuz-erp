@@ -24,6 +24,7 @@ const rbac_1 = require("../auth/utils/rbac");
 const prisma_service_1 = require("../prisma/prisma.service");
 const notifications_service_1 = require("../notifications/notifications.service");
 const sla_service_1 = require("../sla/sla.service");
+const kanban_content_type_1 = require("./kanban-content-type");
 const kanban_defaults_1 = require("./kanban-defaults");
 const kanban_status_1 = require("./kanban-status");
 const production_phase_1 = require("./production-phase");
@@ -158,7 +159,9 @@ let KanbanService = class KanbanService {
         return this.finalizeNewTask(userId, task.id);
     }
     async prepareTaskCreate(userId, dto) {
-        const column = await this.ensureColumnExists(dto.columnId);
+        const column = dto.columnId
+            ? await this.ensureColumnExists(dto.columnId)
+            : null;
         if (dto.clientId)
             await this.ensureClientExists(dto.clientId);
         const assignedGroupId = dto.assignedGroupId ?? null;
@@ -170,10 +173,14 @@ let KanbanService = class KanbanService {
             assignedGroupId,
         });
         await this.validateAssignees(assigneeIds);
-        const status = dto.status ?? column.statusKey ?? kanban_defaults_1.DEFAULT_TASK_STATUS;
+        const status = dto.status ?? column?.statusKey ?? kanban_defaults_1.DEFAULT_TASK_STATUS;
         const statusColumn = await this.resolveColumnForStatus(status);
-        const columnId = statusColumn?.id ?? dto.columnId;
-        const productionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(status, null, dto.productionPhase);
+        const columnId = statusColumn?.id ?? column?.id;
+        if (!columnId) {
+            throw new common_1.BadRequestException('Nenhuma coluna do kanban configurada.');
+        }
+        const contentType = (0, kanban_content_type_1.resolveTaskContentType)(dto.contentType);
+        const productionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(status, null, dto.productionPhase, contentType);
         this.assertValidProductionColumnTarget(status, productionPhase);
         const priority = dto.priority ?? client_1.KanbanTaskPriority.MEDIUM;
         const slaDueDates = await this.slaService.computeDueDatesForPriority(priority, new Date());
@@ -193,6 +200,7 @@ let KanbanService = class KanbanService {
             columnId,
             status,
             productionPhase,
+            contentType,
             clientId: dto.clientId,
             contentPostId: dto.contentPostId,
             calendarEventId,
@@ -221,6 +229,7 @@ let KanbanService = class KanbanService {
                 columnId: prepared.columnId,
                 status: prepared.status,
                 productionPhase: prepared.productionPhase,
+                contentType: prepared.contentType,
                 clientId: prepared.clientId,
                 contentPostId: prepared.contentPostId,
                 calendarEventId: prepared.calendarEventId,
@@ -329,7 +338,16 @@ let KanbanService = class KanbanService {
             existing.status === client_1.KanbanTaskStatus.OK) {
             resolvedAt = null;
         }
-        const resolvedProductionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(resolvedStatus, existing.productionPhase, dto.productionPhase);
+        const nextContentType = dto.contentType ?? existing.contentType;
+        let requestedProductionPhase = dto.productionPhase;
+        if (dto.contentType &&
+            dto.productionPhase === undefined &&
+            resolvedStatus === client_1.KanbanTaskStatus.FALTA_GRAVAR &&
+            (0, production_phase_1.contentTypeRequiresScript)(dto.contentType) !==
+                (0, production_phase_1.contentTypeRequiresScript)(existing.contentType)) {
+            requestedProductionPhase = (0, production_phase_1.defaultProductionPhaseForContentType)(dto.contentType);
+        }
+        const resolvedProductionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(resolvedStatus, existing.productionPhase, requestedProductionPhase, nextContentType);
         this.assertValidProductionColumnTarget(resolvedStatus, resolvedProductionPhase);
         await this.prisma.$transaction(async (tx) => {
             if (nextAssigneeIds) {
@@ -354,6 +372,7 @@ let KanbanService = class KanbanService {
                     columnId: resolvedColumnId,
                     status: resolvedStatus,
                     productionPhase: resolvedProductionPhase,
+                    contentType: dto.contentType,
                     clientId: dto.clientId,
                     assignedGroupId: dto.assignedGroupId !== undefined
                         ? dto.assignedGroupId
@@ -419,7 +438,7 @@ let KanbanService = class KanbanService {
             where: { columnId: statusColumn.id },
             _max: { order: true },
         });
-        const resolvedProductionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(dto.status, existing.productionPhase);
+        const resolvedProductionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(dto.status, existing.productionPhase, undefined, existing.contentType);
         this.assertValidProductionColumnTarget(dto.status, resolvedProductionPhase);
         let resolvedAt;
         if (dto.status === client_1.KanbanTaskStatus.OK &&
@@ -458,7 +477,7 @@ let KanbanService = class KanbanService {
         const sourceOrder = task.order;
         const targetOrder = dto.order;
         const newStatus = targetColumn.statusKey ?? task.status;
-        const resolvedProductionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(newStatus, task.productionPhase);
+        const resolvedProductionPhase = (0, production_phase_1.resolveProductionPhaseForStatus)(newStatus, task.productionPhase, undefined, task.contentType);
         this.assertValidProductionColumnTarget(newStatus, resolvedProductionPhase);
         await this.prisma.$transaction(async (tx) => {
             if (sourceColumnId === dto.columnId) {

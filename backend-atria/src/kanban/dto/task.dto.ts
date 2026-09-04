@@ -12,7 +12,12 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
-import { KanbanTaskPriority, KanbanTaskStatus, ProductionPhase } from '@prisma/client';
+import {
+  KanbanTaskContentType,
+  KanbanTaskPriority,
+  KanbanTaskStatus,
+  ProductionPhase,
+} from '@prisma/client';
 import {
   IsEntityId,
   ToUpperEnum,
@@ -34,8 +39,13 @@ export class CreateTaskDto {
   @MaxLength(5000)
   postCaption?: string;
 
-  @IsEntityId()
-  columnId: string;
+  @IsEntityId({ optional: true })
+  columnId?: string;
+
+  @ToUpperEnum()
+  @IsEnum(KanbanTaskContentType)
+  @IsOptional()
+  contentType?: KanbanTaskContentType;
 
   @ToUpperEnum()
   @IsEnum(KanbanTaskPriority)
@@ -105,6 +115,11 @@ export class UpdateTaskDto {
 
   @IsEntityId({ optional: true })
   columnId?: string;
+
+  @ToUpperEnum()
+  @IsEnum(KanbanTaskContentType)
+  @IsOptional()
+  contentType?: KanbanTaskContentType;
 
   @ToUpperEnum()
   @IsEnum(KanbanTaskPriority)

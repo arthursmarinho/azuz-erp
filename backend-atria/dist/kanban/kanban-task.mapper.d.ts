@@ -1,4 +1,5 @@
-import { KanbanTaskStatus, ProductionPhase } from '@prisma/client';
+import { KanbanTaskContentType, KanbanTaskStatus, ProductionPhase } from '@prisma/client';
+import { type KanbanTaskContentTypeApi } from './kanban-content-type';
 import { KanbanTaskStatusApi } from './kanban-status';
 import { type ProductionPhaseApi } from './production-phase';
 export interface UnifiedTaskClient {
@@ -13,6 +14,7 @@ export interface UnifiedTaskCore {
     description: string | null;
     status: KanbanTaskStatusApi;
     productionPhase: ProductionPhaseApi | null;
+    contentType: KanbanTaskContentTypeApi;
     statusColor: string;
     statusLabel: string;
     dueDate: string | null;
@@ -35,6 +37,7 @@ export declare function toUnifiedTaskCore(task: {
     description: string | null;
     status: KanbanTaskStatus;
     productionPhase?: ProductionPhase | null;
+    contentType?: KanbanTaskContentType | null;
     dueDate: Date | null;
     publicationDate?: Date | null;
     deliveryDate?: Date | null;

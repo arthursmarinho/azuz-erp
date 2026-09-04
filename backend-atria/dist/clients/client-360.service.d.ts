@@ -20,7 +20,7 @@ export declare class Client360Service {
             id: string;
             title: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
+            format: "static" | "carousel" | "reels" | "story";
             status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
             scheduledDate: string | null;
             copy: string;
@@ -115,7 +115,7 @@ export declare class Client360Service {
             isPending: boolean;
             color: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
+            format: "static" | "carousel" | "reels" | "story";
             status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
             assignee: null;
         })[];
@@ -145,7 +145,7 @@ export declare class Client360Service {
             isPending: boolean;
             color: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
+            format: "static" | "carousel" | "reels" | "story";
             status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
             assignee: null;
         })[];
@@ -175,7 +175,7 @@ export declare class Client360Service {
             isPending: boolean;
             color: string;
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
-            format: "carousel" | "reels" | "static" | "story";
+            format: "static" | "carousel" | "reels" | "story";
             status: "approved" | "rejected" | "draft" | "pending_approval" | "scheduled" | "published";
             assignee: null;
         })[];

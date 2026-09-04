@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DEFAULT_PRODUCTION_PHASE = exports.PRODUCTION_PHASE_LABELS = exports.PRODUCTION_PHASE_COLORS = exports.PRODUCTION_PHASE_DEFINITIONS = void 0;
+exports.contentTypeRequiresScript = contentTypeRequiresScript;
+exports.defaultProductionPhaseForContentType = defaultProductionPhaseForContentType;
 exports.phaseToApi = phaseToApi;
 exports.phaseFromApi = phaseFromApi;
 exports.isProductionPhase = isProductionPhase;
@@ -25,6 +27,15 @@ exports.PRODUCTION_PHASE_DEFINITIONS = [
 exports.PRODUCTION_PHASE_COLORS = Object.fromEntries(exports.PRODUCTION_PHASE_DEFINITIONS.map((def) => [def.phase, def.color]));
 exports.PRODUCTION_PHASE_LABELS = Object.fromEntries(exports.PRODUCTION_PHASE_DEFINITIONS.map((def) => [def.phase, def.label]));
 exports.DEFAULT_PRODUCTION_PHASE = client_1.ProductionPhase.ROTEIRO;
+function contentTypeRequiresScript(contentType) {
+    return (contentType == null ||
+        contentType === client_1.KanbanTaskContentType.VIDEO_WITH_SCRIPT);
+}
+function defaultProductionPhaseForContentType(contentType) {
+    return contentTypeRequiresScript(contentType)
+        ? client_1.ProductionPhase.ROTEIRO
+        : client_1.ProductionPhase.EM_GRAVACAO;
+}
 function phaseToApi(phase) {
     return phase.toLowerCase();
 }
@@ -34,12 +45,17 @@ function phaseFromApi(value) {
 function isProductionPhase(value) {
     return (value === client_1.ProductionPhase.ROTEIRO || value === client_1.ProductionPhase.EM_GRAVACAO);
 }
-function resolveProductionPhaseForStatus(status, currentPhase, requestedPhase) {
+function resolveProductionPhaseForStatus(status, currentPhase, requestedPhase, contentType) {
     if (status !== client_1.KanbanTaskStatus.FALTA_GRAVAR) {
         return null;
     }
-    const phase = requestedPhase ?? currentPhase ?? exports.DEFAULT_PRODUCTION_PHASE;
-    return isProductionPhase(phase) ? phase : exports.DEFAULT_PRODUCTION_PHASE;
+    if (isProductionPhase(requestedPhase)) {
+        return requestedPhase;
+    }
+    if (isProductionPhase(currentPhase)) {
+        return currentPhase;
+    }
+    return defaultProductionPhaseForContentType(contentType);
 }
 function resolveTaskDisplayColor(status, productionPhase, statusColors) {
     if (status === client_1.KanbanTaskStatus.FALTA_GRAVAR && productionPhase) {

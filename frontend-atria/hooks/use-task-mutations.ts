@@ -2,10 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { DEFAULT_TASK_STATUS, STATUS_COLORS, STATUS_LABELS } from "@/lib/kanban-utils";
 import {
-  DEFAULT_PRODUCTION_PHASE,
   resolveTaskDisplayColor,
   resolveTaskDisplayLabel,
 } from "@/lib/production-phase";
+import {
+  contentTypeRequiresScript,
+  defaultProductionPhaseForContentType,
+} from "@/lib/task-content-type";
 import {
   applyTaskStatusInCache,
   buildOptimisticTask,
@@ -116,13 +119,24 @@ export function useUpdateTaskMutation() {
         const current = previous.find((task) => task.id === taskId);
         if (current) {
           const nextStatus = data.status ?? current.status;
-          const nextPhase =
+          const nextContentType = data.contentType ?? current.contentType;
+          let nextPhase =
             data.productionPhase !== undefined
               ? data.productionPhase
               : current.productionPhase;
+          if (
+            nextStatus === "falta_gravar" &&
+            data.contentType &&
+            data.productionPhase === undefined &&
+            contentTypeRequiresScript(data.contentType) !==
+              contentTypeRequiresScript(current.contentType)
+          ) {
+            nextPhase = defaultProductionPhaseForContentType(data.contentType);
+          }
           const resolvedPhase =
             nextStatus === "falta_gravar"
-              ? (nextPhase ?? DEFAULT_PRODUCTION_PHASE)
+              ? (nextPhase ??
+                defaultProductionPhaseForContentType(nextContentType))
               : null;
 
           upsertTaskInCache(queryClient, companyId, {

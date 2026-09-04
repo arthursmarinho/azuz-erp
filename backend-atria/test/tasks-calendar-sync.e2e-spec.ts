@@ -12,7 +12,8 @@ describe('Tasks / Kanban / Calendar sync (e2e)', () => {
   let prisma: PrismaService;
   let faltaGravarColumnId: string;
   let okColumnId: string;
-  let createdTaskId: string;
+  let createdTaskId = '';
+  let createdScheduledTaskId = '';
   let createdEventId: string | null;
 
   beforeAll(async () => {
@@ -40,8 +41,9 @@ describe('Tasks / Kanban / Calendar sync (e2e)', () => {
   });
 
   afterAll(async () => {
-    if (createdTaskId) {
-      await prisma.kanbanTask.deleteMany({ where: { id: createdTaskId } });
+    const ids = [createdTaskId, createdScheduledTaskId].filter(Boolean);
+    if (ids.length > 0) {
+      await prisma.kanbanTask.deleteMany({ where: { id: { in: ids } } });
     }
   });
 
@@ -52,7 +54,6 @@ describe('Tasks / Kanban / Calendar sync (e2e)', () => {
       .send({
         title: `E2E Task Sync ${E2E_RUN_ID}`,
         description: 'Created via tasks API',
-        columnId: faltaGravarColumnId,
         clientId: ctx.client.id,
         priority: 'MEDIUM',
       })
@@ -63,10 +64,58 @@ describe('Tasks / Kanban / Calendar sync (e2e)', () => {
 
     expect(res.body.status).toBe('falta_gravar');
     expect(res.body.productionPhase).toBe('roteiro');
+    expect(res.body.contentType).toBe('video_with_script');
+    expect(res.body.columnId).toBe(faltaGravarColumnId);
     expect(res.body.statusColor).toBe('#92400E');
     expect(res.body.statusLabel).toBe('Roteiro');
     expect(res.body.slaStatus).toBeDefined();
     expect(createdEventId).toBeFalsy();
+  });
+
+  it('POST /tasks — scheduled dates appear on the calendar without a column payload', async () => {
+    const publicationDate = new Date('2026-08-25T10:00:00.000Z').toISOString();
+    const deliveryDate = new Date('2026-08-25T18:00:00.000Z').toISOString();
+
+    const res = await request(app.getHttpServer())
+      .post('/tasks')
+      .set(authHeader(ctx.admin.token))
+      .send({
+        title: `E2E Task Calendar ${E2E_RUN_ID}`,
+        contentType: 'CAROUSEL',
+        clientId: ctx.client.id,
+        publicationDate,
+        deliveryDate,
+      })
+      .expect(201);
+
+    createdScheduledTaskId = res.body.id;
+
+    expect(res.body.columnId).toBe(faltaGravarColumnId);
+    expect(res.body.status).toBe('falta_gravar');
+    expect(res.body.contentType).toBe('carousel');
+    expect(res.body.productionPhase).toBe('em_gravacao');
+    expect(res.body.statusLabel).toBe('Em gravação');
+    expect(res.body.publicationDate).toBe(publicationDate);
+    expect(res.body.deliveryDate).toBe(deliveryDate);
+    expect(res.body.calendarEventId).toBeTruthy();
+
+    const events = await request(app.getHttpServer())
+      .get('/calendar/events')
+      .query({
+        from: '2026-08-25T00:00:00.000Z',
+        to: '2026-08-25T23:59:59.999Z',
+        clientId: ctx.client.id,
+      })
+      .set(authHeader(ctx.admin.token))
+      .expect(200);
+
+    const match = events.body.find(
+      (event: { kanbanTaskId: string | null }) =>
+        event.kanbanTaskId === createdScheduledTaskId,
+    );
+    expect(match).toBeDefined();
+    expect(match.publicationDate).toBe(publicationDate);
+    expect(match.startAt).toBe(publicationDate);
   });
 
   it('GET /calendar/events — excludes tasks without publicationDate and returns them as unmapped', async () => {

@@ -7,7 +7,6 @@ import {
   STATUS_LABELS,
 } from "@/lib/kanban-utils";
 import {
-  DEFAULT_PRODUCTION_PHASE,
   resolveTaskDisplayColor,
   resolveTaskDisplayLabel,
 } from "@/lib/production-phase";
@@ -15,9 +14,12 @@ import { calendarKeys, creationKeys, taskKeys } from "@/lib/query-keys";
 import type {
   CalendarEvent,
   KanbanTask,
+  KanbanTaskContentType,
   KanbanTaskStatus,
   ProductionPhase,
 } from "@/services/types";
+import { calendarEventFromTask } from "@/lib/calendar-utils";
+import { DEFAULT_TASK_CONTENT_TYPE, defaultProductionPhaseForContentType } from "@/lib/task-content-type";
 
 export function getTasksCache(
   queryClient: QueryClient,
@@ -44,6 +46,8 @@ export function upsertTaskInCache(
     const without = old.filter((entry) => entry.id !== task.id);
     return [...without, task];
   });
+
+  upsertCalendarEventFromTask(queryClient, companyId, task);
 }
 
 export function patchTaskInCache(
@@ -68,9 +72,13 @@ export function applyTaskStatusInCache(
   columnId?: string,
   productionPhase?: ProductionPhase | null,
 ) {
+  const current = getTasksCache(queryClient, companyId)?.find(
+    (task) => task.id === taskId,
+  );
   const resolvedPhase =
     status === "falta_gravar"
-      ? (productionPhase ?? DEFAULT_PRODUCTION_PHASE)
+      ? (productionPhase ??
+        defaultProductionPhaseForContentType(current?.contentType))
       : null;
   const statusColor = resolveTaskDisplayColor(
     status,
@@ -197,9 +205,13 @@ export function reorderTaskInCache(
   status: KanbanTaskStatus,
   productionPhase?: ProductionPhase | null,
 ) {
+  const currentTask = getTasksCache(queryClient, companyId)?.find(
+    (task) => task.id === taskId,
+  );
   const resolvedPhase =
     status === "falta_gravar"
-      ? (productionPhase ?? DEFAULT_PRODUCTION_PHASE)
+      ? (productionPhase ??
+        defaultProductionPhaseForContentType(currentTask?.contentType))
       : null;
   const statusColor = resolveTaskDisplayColor(
     status,
@@ -215,8 +227,8 @@ export function reorderTaskInCache(
   queryClient.setQueryData<KanbanTask[]>(taskKeys.all(companyId), (old) => {
     if (!old) return old;
 
-    const currentTask = old.find((task) => task.id === taskId);
-    if (!currentTask) return old;
+    const current = old.find((task) => task.id === taskId);
+    if (!current) return old;
 
     const without = old.filter((task) => task.id !== taskId);
     const targetColumnTasks = without
@@ -224,7 +236,7 @@ export function reorderTaskInCache(
       .sort((a, b) => a.order - b.order);
 
     const inserted: KanbanTask = {
-      ...currentTask,
+      ...current,
       columnId,
       order,
       status,
@@ -257,7 +269,8 @@ export function buildOptimisticTask(
     title: string;
     description?: string | null;
     referenceUrl?: string | null;
-    columnId: string;
+    columnId?: string;
+    contentType?: KanbanTaskContentType;
     status?: KanbanTaskStatus;
     productionPhase?: ProductionPhase;
     priority?: KanbanTask["priority"];
@@ -272,7 +285,8 @@ export function buildOptimisticTask(
   const status = data.status ?? DEFAULT_TASK_STATUS;
   const productionPhase =
     status === "falta_gravar"
-      ? (data.productionPhase ?? DEFAULT_PRODUCTION_PHASE)
+      ? (data.productionPhase ??
+        defaultProductionPhaseForContentType(data.contentType))
       : null;
   const statusColor = resolveTaskDisplayColor(
     status,
@@ -284,18 +298,22 @@ export function buildOptimisticTask(
     productionPhase,
     STATUS_LABELS,
   );
-  const column = data.columnId
-    ? previous?.find((task) => task.columnId === data.columnId)?.column
-    : undefined;
+  const matchingColumnTask =
+    (data.columnId
+      ? previous?.find((task) => task.columnId === data.columnId)
+      : undefined) ?? previous?.find((task) => task.status === status);
+  const columnId =
+    data.columnId ?? matchingColumnTask?.columnId ?? previous?.[0]?.columnId ?? "";
+  const column = matchingColumnTask?.column;
 
   return {
     id: optimisticId,
     title: data.title,
     description: data.description ?? null,
     referenceUrl: data.referenceUrl ?? null,
-    columnId: data.columnId,
+    columnId,
     column: column ?? {
-      id: data.columnId,
+      id: columnId,
       title: DEFAULT_TASK_STATUS_LABEL,
       order: 0,
       color: DEFAULT_TASK_STATUS_COLOR,
@@ -311,10 +329,11 @@ export function buildOptimisticTask(
     isBypassingInternalReview: false,
     status,
     productionPhase,
+    contentType: data.contentType ?? DEFAULT_TASK_CONTENT_TYPE,
     statusColor,
     statusLabel,
     priority: data.priority ?? "medium",
-    order: previous?.filter((t) => t.columnId === data.columnId).length ?? 0,
+    order: previous?.filter((t) => t.columnId === columnId).length ?? 0,
     dueDate: data.deliveryDate ?? data.dueDate ?? null,
     deliveryDate: data.deliveryDate ?? data.dueDate ?? null,
     publicationDate: data.publicationDate ?? null,
@@ -329,6 +348,33 @@ export function buildOptimisticTask(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+}
+
+function upsertCalendarEventFromTask(
+  queryClient: QueryClient,
+  companyId: string,
+  task: KanbanTask,
+) {
+  if (!task.publicationDate) return;
+
+  const nextEvent = calendarEventFromTask(task);
+  const queries = queryClient.getQueriesData<CalendarEvent[]>({
+    queryKey: calendarKeys.all(companyId),
+  });
+
+  for (const [queryKey, events] of queries) {
+    if (!Array.isArray(events)) continue;
+    queryClient.setQueryData<CalendarEvent[]>(
+      queryKey,
+      [
+        ...events.filter(
+          (event) =>
+            event.kanbanTaskId !== task.id && event.id !== nextEvent.id,
+        ),
+        nextEvent,
+      ],
+    );
+  }
 }
 
 export function invalidateTasksCache(queryClient: QueryClient) {

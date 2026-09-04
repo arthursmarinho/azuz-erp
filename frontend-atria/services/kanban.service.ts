@@ -71,6 +71,7 @@ export async function createTask(data: CreateTaskInput): Promise<KanbanTask> {
       priority: data.priority?.toUpperCase(),
       status: data.status?.toUpperCase(),
       productionPhase: data.productionPhase?.toUpperCase(),
+      contentType: data.contentType?.toUpperCase(),
     },
   });
 }
@@ -84,6 +85,9 @@ export async function updateTask(
   if (data.status) body.status = data.status.toUpperCase();
   if (data.productionPhase) {
     body.productionPhase = data.productionPhase.toUpperCase();
+  }
+  if (data.contentType) {
+    body.contentType = data.contentType.toUpperCase();
   }
 
   return apiRequest<KanbanTask>(`/kanban/tasks/${id}`, {

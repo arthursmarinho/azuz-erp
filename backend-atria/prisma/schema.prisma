@@ -287,6 +287,7 @@ model KanbanTask {
   isBypassingInternalReview Boolean              @default(false)
   publicationDate           DateTime?
   deliveryDate              DateTime?
+  contentType               KanbanTaskContentType @default(VIDEO_WITH_SCRIPT)
   assignedGroup             UserGroup?           @relation(fields: [assignedGroupId], references: [id])
   calendarEvent             CalendarEvent?       @relation(fields: [calendarEventId], references: [id])
   client                    Client?              @relation(fields: [clientId], references: [id])
@@ -1298,6 +1299,13 @@ enum KanbanTaskStatus {
 enum ProductionPhase {
   ROTEIRO
   EM_GRAVACAO
+}
+
+enum KanbanTaskContentType {
+  VIDEO_WITH_SCRIPT
+  STATIC
+  CAROUSEL
+  STORIES_NO_SCRIPT
 }
 
 enum InternalReviewStatus {

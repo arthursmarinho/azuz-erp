@@ -1,4 +1,4 @@
-import { KanbanTaskStatus, ProductionPhase } from '@prisma/client';
+import { KanbanTaskContentType, KanbanTaskStatus, ProductionPhase } from '@prisma/client';
 
 export const PRODUCTION_PHASE_DEFINITIONS: ReadonlyArray<{
   phase: ProductionPhase;
@@ -32,6 +32,23 @@ export const PRODUCTION_PHASE_LABELS: Record<ProductionPhase, string> =
 
 export const DEFAULT_PRODUCTION_PHASE = ProductionPhase.ROTEIRO;
 
+export function contentTypeRequiresScript(
+  contentType?: KanbanTaskContentType | null,
+) {
+  return (
+    contentType == null ||
+    contentType === KanbanTaskContentType.VIDEO_WITH_SCRIPT
+  );
+}
+
+export function defaultProductionPhaseForContentType(
+  contentType?: KanbanTaskContentType | null,
+): ProductionPhase {
+  return contentTypeRequiresScript(contentType)
+    ? ProductionPhase.ROTEIRO
+    : ProductionPhase.EM_GRAVACAO;
+}
+
 export type ProductionPhaseApi = 'roteiro' | 'em_gravacao';
 
 export function phaseToApi(phase: ProductionPhase): ProductionPhaseApi {
@@ -52,13 +69,21 @@ export function resolveProductionPhaseForStatus(
   status: KanbanTaskStatus,
   currentPhase: ProductionPhase | null | undefined,
   requestedPhase?: ProductionPhase | null,
+  contentType?: KanbanTaskContentType | null,
 ): ProductionPhase | null {
   if (status !== KanbanTaskStatus.FALTA_GRAVAR) {
     return null;
   }
 
-  const phase = requestedPhase ?? currentPhase ?? DEFAULT_PRODUCTION_PHASE;
-  return isProductionPhase(phase) ? phase : DEFAULT_PRODUCTION_PHASE;
+  if (isProductionPhase(requestedPhase)) {
+    return requestedPhase;
+  }
+
+  if (isProductionPhase(currentPhase)) {
+    return currentPhase;
+  }
+
+  return defaultProductionPhaseForContentType(contentType);
 }
 
 export function resolveTaskDisplayColor(

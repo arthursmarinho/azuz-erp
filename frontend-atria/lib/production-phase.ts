@@ -1,4 +1,5 @@
-import type { KanbanTaskStatus, ProductionPhase } from "@/services/types";
+import type { KanbanTaskContentType, KanbanTaskStatus, ProductionPhase } from "@/services/types";
+import { defaultProductionPhaseForContentType } from "@/lib/task-content-type";
 
 export const PRODUCTION_PHASE_DEFINITIONS: ReadonlyArray<{
   phase: ProductionPhase;
@@ -43,13 +44,21 @@ export function resolveProductionPhaseForStatus(
   status: KanbanTaskStatus,
   currentPhase: ProductionPhase | null | undefined,
   requestedPhase?: ProductionPhase | null,
+  contentType?: KanbanTaskContentType | null,
 ): ProductionPhase | null {
   if (status !== "falta_gravar") {
     return null;
   }
 
-  const phase = requestedPhase ?? currentPhase ?? DEFAULT_PRODUCTION_PHASE;
-  return isProductionPhase(phase) ? phase : DEFAULT_PRODUCTION_PHASE;
+  if (isProductionPhase(requestedPhase)) {
+    return requestedPhase;
+  }
+
+  if (isProductionPhase(currentPhase)) {
+    return currentPhase;
+  }
+
+  return defaultProductionPhaseForContentType(contentType);
 }
 
 export function resolveTaskDisplayColor(

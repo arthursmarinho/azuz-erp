@@ -1,4 +1,4 @@
-import { KanbanTaskPriority, KanbanTaskStatus, InternalReviewStatus, ProductionPhase, Prisma } from '@prisma/client';
+import { KanbanTaskContentType, KanbanTaskPriority, KanbanTaskStatus, InternalReviewStatus, ProductionPhase, Prisma } from '@prisma/client';
 import { DeliverablesService } from '../deliverables/deliverables.service';
 import { SupabaseStorageService } from '../supabase/supabase-storage.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -16,6 +16,7 @@ type PreparedTaskCreate = {
     columnId: string;
     status: KanbanTaskStatus;
     productionPhase: ProductionPhase | null;
+    contentType: KanbanTaskContentType;
     clientId?: string;
     contentPostId?: string;
     calendarEventId?: string;
@@ -130,6 +131,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -200,6 +202,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -274,6 +277,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -291,6 +295,7 @@ export declare class KanbanService {
         columnId: string;
         status: import("@prisma/client").$Enums.KanbanTaskStatus;
         productionPhase: import("@prisma/client").$Enums.ProductionPhase | null;
+        contentType: import("@prisma/client").$Enums.KanbanTaskContentType;
         clientId: string | undefined;
         contentPostId: string | undefined;
         calendarEventId: string | undefined;
@@ -366,6 +371,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -436,6 +442,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -506,6 +513,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -576,6 +584,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;
@@ -646,6 +655,7 @@ export declare class KanbanService {
         description: string | null;
         status: import("./kanban-status").KanbanTaskStatusApi;
         productionPhase: import("./production-phase").ProductionPhaseApi | null;
+        contentType: import("./kanban-content-type").KanbanTaskContentTypeApi;
         statusColor: string;
         statusLabel: string;
         dueDate: string | null;

@@ -1,9 +1,10 @@
-import { KanbanTaskPriority, KanbanTaskStatus, ProductionPhase } from '@prisma/client';
+import { KanbanTaskContentType, KanbanTaskPriority, KanbanTaskStatus, ProductionPhase } from '@prisma/client';
 export declare class CreateTaskDto {
     title: string;
     description?: string;
     postCaption?: string;
-    columnId: string;
+    columnId?: string;
+    contentType?: KanbanTaskContentType;
     priority?: KanbanTaskPriority;
     status?: KanbanTaskStatus;
     productionPhase?: ProductionPhase;
@@ -22,6 +23,7 @@ export declare class UpdateTaskDto {
     description?: string;
     postCaption?: string;
     columnId?: string;
+    contentType?: KanbanTaskContentType;
     priority?: KanbanTaskPriority;
     status?: KanbanTaskStatus;
     productionPhase?: ProductionPhase;
