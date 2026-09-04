@@ -20,7 +20,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "ATRIA ERP",
-  description: "Sistema de gestão ATRIA",
+  description: "Sistema de gestão AZUZ",
   manifest: "/manifest.json",
   icons: {
     apple: "/icons/icon-192.png",
