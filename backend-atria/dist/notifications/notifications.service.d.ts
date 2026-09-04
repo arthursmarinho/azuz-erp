@@ -11,6 +11,7 @@ export declare class NotificationsService {
         type: string;
         isRead: boolean;
         taskId: string | null;
+        appUpdateId: string | null;
         createdAt: string;
     }[]>;
     getUnreadCount(userId: string): Promise<number>;
@@ -22,6 +23,7 @@ export declare class NotificationsService {
         type: string;
         isRead: boolean;
         taskId: string | null;
+        appUpdateId: string | null;
         createdAt: string;
     }>;
     markAllAsRead(userId: string): Promise<{
@@ -41,9 +43,21 @@ export declare class NotificationsService {
     notifyNewLeadInKanban(userIds: string[], leadName: string, options?: {
         companyId?: string;
     }): Promise<void>;
+    notifyAppUpdate(userIds: string[], updateTitle: string, options?: {
+        companyId?: string;
+        appUpdateId?: string;
+    }): Promise<void>;
+    getAppUpdateUnreadCount(userId: string): Promise<number>;
+    markAppUpdateNotificationAsRead(userId: string, appUpdateId: string): Promise<{
+        success: boolean;
+    }>;
+    markAppUpdateNotificationsAsRead(userId: string): Promise<{
+        success: boolean;
+    }>;
     createMany(userIds: string[], type: NotificationType, title: string, message: string, extra?: {
         companyId?: string;
         taskId?: string;
+        appUpdateId?: string;
     }): Promise<void>;
     private toResponse;
 }

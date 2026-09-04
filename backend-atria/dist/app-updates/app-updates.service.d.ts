@@ -1,13 +1,24 @@
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAppUpdateDto, UpdateAppUpdateDto } from './dto/app-update.dto';
 export declare class AppUpdatesService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
-    getAccess(role: string, companyId: string | null): Promise<{
+    private readonly notifications;
+    constructor(prisma: PrismaService, notifications: NotificationsService);
+    getAccess(userId: string, role: string, companyId: string | null): Promise<{
         canView: boolean;
         canManage: boolean;
+        unreadCount: number;
+        updateCount: number;
     }>;
-    findAll(role: string, companyId: string | null): Promise<{
+    markAsRead(userId: string): Promise<{
+        success: boolean;
+    }>;
+    markOneAsRead(userId: string, appUpdateId: string): Promise<{
+        success: boolean;
+    }>;
+    findAll(userId: string, role: string, companyId: string | null): Promise<{
+        isRead: boolean;
         id: string;
         title: string;
         body: string;
@@ -60,6 +71,8 @@ export declare class AppUpdatesService {
     }>;
     private viewerWhere;
     private findOwnedUpdate;
+    private notifyEligibleUsers;
+    private findReadableUpdate;
     private normalizeVisibleRoles;
     private toResponse;
 }

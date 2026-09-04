@@ -800,6 +800,7 @@ model Notification {
   createdAt DateTime         @default(now())
   companyId String           @default("00000000-0000-4000-8000-000000000001")
   taskId    String?
+  appUpdateId String?        @map("app_update_id")
   company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -807,6 +808,7 @@ model Notification {
   @@index([userId, createdAt])
   @@index([companyId])
   @@index([type, taskId, createdAt])
+  @@index([appUpdateId])
   @@map("notifications")
 }
 
@@ -1254,6 +1256,7 @@ enum NotificationType {
   DUE_DATE_WARNING
   NEW_REQUEST
   SYSTEM
+  APP_UPDATE
 }
 
 enum TransactionType {

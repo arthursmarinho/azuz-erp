@@ -80,6 +80,41 @@ let NotificationsService = class NotificationsService {
     async notifyNewLeadInKanban(userIds, leadName, options) {
         await this.createMany(userIds, client_1.NotificationType.SYSTEM, 'Novo Lead no Kanban', `${leadName} foi adicionado ao seu funil.`, options);
     }
+    async notifyAppUpdate(userIds, updateTitle, options) {
+        await this.createMany(userIds, client_1.NotificationType.APP_UPDATE, 'Nova atualização do app', `Confira: "${updateTitle}"`, options);
+    }
+    async getAppUpdateUnreadCount(userId) {
+        return this.prisma.notification.count({
+            where: {
+                userId,
+                type: client_1.NotificationType.APP_UPDATE,
+                isRead: false,
+            },
+        });
+    }
+    async markAppUpdateNotificationAsRead(userId, appUpdateId) {
+        await this.prisma.notification.updateMany({
+            where: {
+                userId,
+                type: client_1.NotificationType.APP_UPDATE,
+                appUpdateId,
+                isRead: false,
+            },
+            data: { isRead: true },
+        });
+        return { success: true };
+    }
+    async markAppUpdateNotificationsAsRead(userId) {
+        await this.prisma.notification.updateMany({
+            where: {
+                userId,
+                type: client_1.NotificationType.APP_UPDATE,
+                isRead: false,
+            },
+            data: { isRead: true },
+        });
+        return { success: true };
+    }
     async createMany(userIds, type, title, message, extra) {
         const uniqueIds = [...new Set(userIds)].filter(Boolean);
         if (uniqueIds.length === 0)
@@ -92,6 +127,7 @@ let NotificationsService = class NotificationsService {
                 message,
                 ...(extra?.companyId ? { companyId: extra.companyId } : {}),
                 ...(extra?.taskId ? { taskId: extra.taskId } : {}),
+                ...(extra?.appUpdateId ? { appUpdateId: extra.appUpdateId } : {}),
             })),
         });
     }
@@ -104,6 +140,7 @@ let NotificationsService = class NotificationsService {
             type: String(notification.type).toLowerCase(),
             isRead: notification.isRead,
             taskId: notification.taskId ?? null,
+            appUpdateId: notification.appUpdateId ?? null,
             createdAt: notification.createdAt.toISOString(),
         };
     }

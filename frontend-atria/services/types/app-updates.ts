@@ -22,11 +22,14 @@ export interface AppUpdate {
   companyId: string;
   createdAt: string;
   updatedAt: string;
+  isRead: boolean;
 }
 
 export interface AppUpdatesAccess {
   canView: boolean;
   canManage: boolean;
+  unreadCount: number;
+  updateCount: number;
 }
 
 export interface CreateAppUpdateInput {

@@ -152,12 +152,61 @@ export class NotificationsService {
     );
   }
 
+  async notifyAppUpdate(
+    userIds: string[],
+    updateTitle: string,
+    options?: { companyId?: string; appUpdateId?: string },
+  ) {
+    await this.createMany(
+      userIds,
+      NotificationType.APP_UPDATE,
+      'Nova atualização do app',
+      `Confira: "${updateTitle}"`,
+      options,
+    );
+  }
+
+  async getAppUpdateUnreadCount(userId: string) {
+    return this.prisma.notification.count({
+      where: {
+        userId,
+        type: NotificationType.APP_UPDATE,
+        isRead: false,
+      },
+    });
+  }
+
+  async markAppUpdateNotificationAsRead(userId: string, appUpdateId: string) {
+    await this.prisma.notification.updateMany({
+      where: {
+        userId,
+        type: NotificationType.APP_UPDATE,
+        appUpdateId,
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+    return { success: true };
+  }
+
+  async markAppUpdateNotificationsAsRead(userId: string) {
+    await this.prisma.notification.updateMany({
+      where: {
+        userId,
+        type: NotificationType.APP_UPDATE,
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+    return { success: true };
+  }
+
   async createMany(
     userIds: string[],
     type: NotificationType,
     title: string,
     message: string,
-    extra?: { companyId?: string; taskId?: string },
+    extra?: { companyId?: string; taskId?: string; appUpdateId?: string },
   ) {
     const uniqueIds = [...new Set(userIds)].filter(Boolean);
     if (uniqueIds.length === 0) return;
@@ -170,6 +219,7 @@ export class NotificationsService {
         message,
         ...(extra?.companyId ? { companyId: extra.companyId } : {}),
         ...(extra?.taskId ? { taskId: extra.taskId } : {}),
+        ...(extra?.appUpdateId ? { appUpdateId: extra.appUpdateId } : {}),
       })),
     });
   }
@@ -183,6 +233,7 @@ export class NotificationsService {
     isRead: boolean;
     createdAt: Date;
     taskId?: string | null;
+    appUpdateId?: string | null;
   }) {
     return {
       id: notification.id,
@@ -192,6 +243,7 @@ export class NotificationsService {
       type: String(notification.type).toLowerCase(),
       isRead: notification.isRead,
       taskId: notification.taskId ?? null,
+      appUpdateId: notification.appUpdateId ?? null,
       createdAt: notification.createdAt.toISOString(),
     };
   }

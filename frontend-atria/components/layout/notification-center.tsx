@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNotifications } from "@/contexts/notifications-context";
+import { useMarkNotificationAsRead } from "@/hooks/use-mark-notification-as-read";
 import { formatCurrency } from "@/lib/financial-utils";
 import { getNotificationHref } from "@/lib/notification-utils";
 import { financeService } from "@/services";
@@ -25,6 +26,7 @@ export function NotificationCenter() {
   const router = useRouter();
   const { notifications, unreadCount, markAsRead, markAllAsRead, refresh } =
     useNotifications();
+  const markNotificationAsRead = useMarkNotificationAsRead();
   const [financeAlerts, setFinanceAlerts] =
     useState<FinanceDueTodayAlerts | null>(null);
   const [open, setOpen] = useState(false);
@@ -52,7 +54,7 @@ export function NotificationCenter() {
   async function handleOpen(notification: AppNotification) {
     setOpen(false);
     if (!notification.isRead) {
-      await markAsRead(notification.id);
+      await markNotificationAsRead(notification);
     }
     router.push(getNotificationHref(notification));
   }
@@ -165,6 +167,7 @@ export function NotificationCenter() {
                 notification={notification}
                 compact
                 onOpen={(item) => void handleOpen(item)}
+                onMarkAsRead={(item) => void markNotificationAsRead(item)}
               />
             ))}
           </div>

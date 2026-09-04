@@ -11,6 +11,7 @@ export declare class NotificationsController {
         type: string;
         isRead: boolean;
         taskId: string | null;
+        appUpdateId: string | null;
         createdAt: string;
     }[]>;
     getUnreadCount(user: AuthenticatedUser): Promise<number>;
@@ -25,6 +26,7 @@ export declare class NotificationsController {
         type: string;
         isRead: boolean;
         taskId: string | null;
+        appUpdateId: string | null;
         createdAt: string;
     }>;
 }

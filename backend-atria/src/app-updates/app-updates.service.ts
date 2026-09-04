@@ -3,8 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { RoleName } from '@prisma/client';
+import { RoleName, NotificationType } from '@prisma/client';
 import { normalizeRoleName } from '../auth/constants/permissions';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAppUpdateDto, UpdateAppUpdateDto } from './dto/app-update.dto';
 
@@ -23,28 +24,69 @@ const SELECTABLE_ROLES: RoleName[] = [
 
 @Injectable()
 export class AppUpdatesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
-  async getAccess(role: string, companyId: string | null) {
+  async getAccess(
+    userId: string,
+    role: string,
+    companyId: string | null,
+  ) {
     const roleName = normalizeRoleName(role);
     const canManage = roleName === RoleName.MASTER;
+    const unreadCount =
+      await this.notifications.getAppUpdateUnreadCount(userId);
 
     if (canManage) {
-      return { canView: true, canManage: true };
+      const updateCount = await this.prisma.appUpdate.count({
+        where: companyId ? { companyId } : {},
+      });
+      return {
+        canView: true,
+        canManage: true,
+        unreadCount,
+        updateCount,
+      };
     }
 
     if (!roleName) {
-      return { canView: false, canManage: false };
+      return {
+        canView: false,
+        canManage: false,
+        unreadCount: 0,
+        updateCount: 0,
+      };
     }
 
-    const count = await this.prisma.appUpdate.count({
+    const updateCount = await this.prisma.appUpdate.count({
       where: this.viewerWhere(roleName, companyId),
     });
 
-    return { canView: count > 0, canManage: false };
+    return {
+      canView: updateCount > 0,
+      canManage: false,
+      unreadCount,
+      updateCount,
+    };
   }
 
-  async findAll(role: string, companyId: string | null) {
+  async markAsRead(userId: string) {
+    await this.notifications.markAppUpdateNotificationsAsRead(userId);
+    return { success: true };
+  }
+
+  async markOneAsRead(userId: string, appUpdateId: string) {
+    await this.findReadableUpdate(userId, appUpdateId);
+    await this.notifications.markAppUpdateNotificationAsRead(
+      userId,
+      appUpdateId,
+    );
+    return { success: true };
+  }
+
+  async findAll(userId: string, role: string, companyId: string | null) {
     const roleName = normalizeRoleName(role);
     if (!roleName) {
       throw new ForbiddenException('Invalid role');
@@ -65,7 +107,25 @@ export class AppUpdatesService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return items.map((item) => this.toResponse(item));
+    const unreadNotifications = await this.prisma.notification.findMany({
+      where: {
+        userId,
+        type: NotificationType.APP_UPDATE,
+        isRead: false,
+        appUpdateId: { in: items.map((item) => item.id) },
+      },
+      select: { appUpdateId: true },
+    });
+    const unreadIds = new Set(
+      unreadNotifications
+        .map((notification) => notification.appUpdateId)
+        .filter((id): id is string => Boolean(id)),
+    );
+
+    return items.map((item) => ({
+      ...this.toResponse(item),
+      isRead: !unreadIds.has(item.id),
+    }));
   }
 
   async create(
@@ -74,6 +134,7 @@ export class AppUpdatesService {
     dto: CreateAppUpdateDto,
   ) {
     const visibleRoles = this.normalizeVisibleRoles(dto.visibleRoles);
+    const resolvedCompanyId = companyId ?? DEFAULT_COMPANY_ID;
     const item = await this.prisma.appUpdate.create({
       data: {
         title: dto.title.trim(),
@@ -81,7 +142,7 @@ export class AppUpdatesService {
         visibleRoles,
         isPublished: dto.isPublished ?? true,
         createdById: userId,
-        companyId: companyId ?? DEFAULT_COMPANY_ID,
+        companyId: resolvedCompanyId,
       },
       include: {
         createdBy: {
@@ -89,6 +150,10 @@ export class AppUpdatesService {
         },
       },
     });
+
+    if (item.isPublished) {
+      await this.notifyEligibleUsers(item);
+    }
 
     return this.toResponse(item);
   }
@@ -99,6 +164,7 @@ export class AppUpdatesService {
     dto: UpdateAppUpdateDto,
   ) {
     const existing = await this.findOwnedUpdate(id, companyId);
+    const wasPublished = existing.isPublished;
 
     const updated = await this.prisma.appUpdate.update({
       where: { id: existing.id },
@@ -118,6 +184,10 @@ export class AppUpdatesService {
         },
       },
     });
+
+    if (updated.isPublished && !wasPublished) {
+      await this.notifyEligibleUsers(updated);
+    }
 
     return this.toResponse(updated);
   }
@@ -141,6 +211,64 @@ export class AppUpdatesService {
       where: {
         id,
         ...(companyId ? { companyId } : {}),
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException('App update not found');
+    }
+
+    return item;
+  }
+
+  private async notifyEligibleUsers(update: {
+    id: string;
+    title: string;
+    companyId: string;
+    visibleRoles: RoleName[];
+    createdById: string;
+  }) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        companyId: update.companyId,
+        isActive: true,
+        id: { not: update.createdById },
+        role: {
+          name: { in: update.visibleRoles },
+        },
+      },
+      select: { id: true },
+    });
+
+    await this.notifications.notifyAppUpdate(
+      users.map((user) => user.id),
+      update.title,
+      { companyId: update.companyId, appUpdateId: update.id },
+    );
+  }
+
+  private async findReadableUpdate(userId: string, appUpdateId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        companyId: true,
+        role: { select: { name: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('App update not found');
+    }
+
+    const roleName = user.role.name;
+    const isMaster = roleName === RoleName.MASTER;
+    const item = await this.prisma.appUpdate.findFirst({
+      where: {
+        id: appUpdateId,
+        companyId: user.companyId,
+        ...(isMaster
+          ? {}
+          : this.viewerWhere(roleName, user.companyId)),
       },
     });
 

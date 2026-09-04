@@ -10,6 +10,20 @@ export async function getAccess(): Promise<AppUpdatesAccess> {
   return apiRequest<AppUpdatesAccess>("/app-updates/access");
 }
 
+export async function markAppUpdatesAsRead(): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>("/app-updates/mark-read", {
+    method: "POST",
+  });
+}
+
+export async function markAppUpdateAsRead(
+  id: string,
+): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>(`/app-updates/${id}/mark-read`, {
+    method: "POST",
+  });
+}
+
 export async function getAppUpdates(): Promise<AppUpdate[]> {
   return apiRequest<AppUpdate[]>("/app-updates");
 }
