@@ -13,6 +13,7 @@ import {
   type LucideIcon,
   KanbanSquareIcon,
   MessageSquarePlus,
+  Megaphone,
 } from "lucide-react";
 
 export interface NavChild {
@@ -72,6 +73,11 @@ export const navSections: NavSection[] = [
         name: "Sugestões",
         href: "/suggestions",
         icon: MessageSquarePlus,
+      },
+      {
+        name: "Atualizações",
+        href: "/app-updates",
+        icon: Megaphone,
       },
       {
         name: "Configurações",

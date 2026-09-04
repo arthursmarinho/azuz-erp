@@ -18,8 +18,8 @@ export declare class PortalAuthService {
         refreshToken: string;
         client: {
             id: string;
-            companyName: string;
             isActive: boolean;
+            companyName: string;
         };
         mustChangePassword: boolean;
     }>;
@@ -28,8 +28,8 @@ export declare class PortalAuthService {
         refreshToken: string;
         client: {
             id: string;
-            companyName: string;
             isActive: boolean;
+            companyName: string;
         };
         mustChangePassword: boolean;
     }>;
@@ -43,9 +43,9 @@ export declare class PortalAuthService {
     }>;
     getPortalUserFromAccessToken(token: string): Promise<{
         id: string;
-        clientId: string;
         email: string;
         mustChangePassword: boolean;
+        clientId: string;
     }>;
     private generateTokens;
     private storeRefreshToken;

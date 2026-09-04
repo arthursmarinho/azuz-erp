@@ -8,7 +8,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueryTasksDto = exports.UpdateTaskStatusDto = exports.MoveTaskDto = exports.UpdateTaskDto = exports.CreateTaskDto = void 0;
 const class_transformer_1 = require("class-transformer");
@@ -61,7 +60,7 @@ __decorate([
     (0, entity_id_1.ToUpperEnum)(),
     (0, class_validator_1.IsEnum)(client_1.KanbanTaskContentType),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", typeof (_a = typeof client_1.KanbanTaskContentType !== "undefined" && client_1.KanbanTaskContentType) === "function" ? _a : Object)
+    __metadata("design:type", String)
 ], CreateTaskDto.prototype, "contentType", void 0);
 __decorate([
     (0, entity_id_1.ToUpperEnum)(),
@@ -169,7 +168,7 @@ __decorate([
     (0, entity_id_1.ToUpperEnum)(),
     (0, class_validator_1.IsEnum)(client_1.KanbanTaskContentType),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", typeof (_b = typeof client_1.KanbanTaskContentType !== "undefined" && client_1.KanbanTaskContentType) === "function" ? _b : Object)
+    __metadata("design:type", String)
 ], UpdateTaskDto.prototype, "contentType", void 0);
 __decorate([
     (0, entity_id_1.ToUpperEnum)(),

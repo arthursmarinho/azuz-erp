@@ -9,8 +9,8 @@ export declare class AssetsController {
         clientId: string;
         client: {
             id: string;
-            companyName: string;
             avatarUrl: string | null;
+            companyName: string;
         };
         fileName: string;
         fileType: "image" | "logo" | "brand_guide" | "document";
@@ -26,8 +26,8 @@ export declare class AssetsController {
     findGrouped(): Promise<{
         client: {
             id: string;
-            companyName: string;
             avatarUrl: string | null;
+            companyName: string;
         };
         assets: ReturnType<any>[];
     }[]>;
@@ -36,8 +36,8 @@ export declare class AssetsController {
         clientId: string;
         client: {
             id: string;
-            companyName: string;
             avatarUrl: string | null;
+            companyName: string;
         };
         fileName: string;
         fileType: "image" | "logo" | "brand_guide" | "document";
@@ -55,8 +55,8 @@ export declare class AssetsController {
         clientId: string;
         client: {
             id: string;
-            companyName: string;
             avatarUrl: string | null;
+            companyName: string;
         };
         fileName: string;
         fileType: "image" | "logo" | "brand_guide" | "document";

@@ -54,6 +54,7 @@ model Company {
   leads                      Lead[]
   notifications              Notification[]
   systemSuggestions          SystemSuggestion[]
+  appUpdates                 AppUpdate[]
   tasks                      Task[]
 }
 
@@ -122,6 +123,7 @@ model User {
   assignedTasks                Task[]                  @relation("TaskDesigner")
   crmScopes                    UserCrmScope[]
   systemSuggestions            SystemSuggestion[]
+  appUpdatesCreated            AppUpdate[]
 
   @@unique([companyId, email])
   @@index([clientId])
@@ -1474,4 +1476,23 @@ model SystemSuggestion {
   @@index([submittedById])
   @@index([status])
   @@map("system_suggestions")
+}
+
+model AppUpdate {
+  id           String     @id @default(uuid())
+  title        String
+  body         String
+  visibleRoles RoleName[]
+  isPublished  Boolean    @default(true) @map("is_published")
+  createdById  String     @map("created_by_id")
+  companyId    String     @default("00000000-0000-4000-8000-000000000001")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  createdBy    User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  company      Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([createdById])
+  @@index([isPublished])
+  @@map("app_updates")
 }

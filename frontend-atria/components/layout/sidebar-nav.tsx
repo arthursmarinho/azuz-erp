@@ -5,7 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { useAppUpdatesAccess } from "@/hooks/use-app-updates";
 import { canAccessRoute } from "@/lib/navigation-access";
+import { isMasterRole } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -42,6 +44,7 @@ export function SidebarNav({
 }: SidebarNavProps) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { data: appUpdatesAccess } = useAppUpdatesAccess();
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
 
   const visibleSections = useMemo(() => {
@@ -50,6 +53,14 @@ export function SidebarNav({
         ...section,
         items: section.items
           .map((item) => {
+            if (item.href === "/app-updates") {
+              const canSeeAppUpdates =
+                isMasterRole(user?.role) || appUpdatesAccess?.canView;
+              if (!canSeeAppUpdates) {
+                return null;
+              }
+            }
+
             if (!item.children?.length) {
               return canAccessRoute(user?.role, item.href, user?.permissions)
                 ? item
@@ -69,7 +80,7 @@ export function SidebarNav({
           .filter((item): item is NonNullable<typeof item> => item !== null),
       }))
       .filter((section) => section.items.length > 0);
-  }, [user?.permissions, user?.role]);
+  }, [appUpdatesAccess?.canView, user?.permissions, user?.role]);
 
   useEffect(() => {
     if (collapsed) {
